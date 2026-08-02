@@ -1,0 +1,7 @@
+{
+  "name": "j-chapin",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular-standalone"
+}
