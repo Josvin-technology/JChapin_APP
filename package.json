@@ -27,6 +27,7 @@
     "@capacitor/keyboard": "8.0.5",
     "@capacitor/status-bar": "8.0.3",
     "@ionic/angular": "^8.0.0",
+    "@supabase/supabase-js": "^2.111.0",
     "@tailwindcss/postcss": "^4.3.3",
     "ionicons": "^7.0.0",
     "postcss": "^8.5.25",

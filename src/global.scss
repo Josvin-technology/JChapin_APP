@@ -27,3 +27,49 @@
 
 @import "tailwindcss";
 
+
+/* Importar la fuente (puedes usar Google Fonts) */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+@theme {
+  /* --- Colors --- */
+  --color-surface: #f6faff;
+  --color-surface-dim: #d3dbe3;
+  --color-primary: #004e3d;
+  --color-on-primary: #ffffff;
+  --color-primary-container: #006853;
+  --color-secondary: #0d658d;
+  --color-secondary-container: #8dd1fe;
+  --color-tertiary: #5e3e00;
+  --color-tertiary-container: #7d5300;
+  --color-neutral: #1d252b;
+  --color-error: #ba1a1a;
+  
+  /* --- Typography --- */
+  --font-main: "Poppins", sans-serif;
+  
+  /* --- Radius (Siguiendo tu diseño) --- */
+  --radius-sm: 0.25rem;
+  --radius-default: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+
+  /* --- Spacing --- */
+  --spacing-gutter: 24px;
+}
+
+
+:root {
+  font-family: var(--font-main);
+
+  --ion-color-primary: #004e3d;
+  --ion-color-primary-rgb: 0, 78, 61;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #004536;
+  --ion-color-primary-tint: #1a6050;
+  
+  --ion-background-color: #f6faff;
+}
+
