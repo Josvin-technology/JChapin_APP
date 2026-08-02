@@ -1,0 +1,166 @@
+<div class="flex flex-col gap-8">
+  <!-- ── Eventos Destacados ── -->
+  <section class="flex flex-col gap-3">
+    <div class="flex justify-between items-center">
+      <h2 class="text-lg font-bold text-neutral">Eventos destacados</h2>
+      <button class="text-sm font-bold text-primary">Ver todo</button>
+    </div>
+
+    <div class="flex gap-3 overflow-x-auto no-scrollbar -mx-4 px-4 pb-1">
+      @for (event of featuredEvents(); track event.id) {
+        <a
+          [routerLink]="['/events', event.id]"
+          class="flex-shrink-0 w-64 rounded-2xl overflow-hidden shadow-sm relative block active:scale-[0.98] transition-transform"
+        >
+          <img
+            [src]="event.image"
+            [alt]="event.title"
+            class="w-full h-40 object-cover"
+          />
+
+          <!-- Overlay gradient -->
+          <div
+            class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent"
+          ></div>
+
+          <!-- DESTACADO badge -->
+          <div
+            class="absolute top-2.5 right-2.5 bg-primary text-white text-[10px] font-black px-2.5 py-1 rounded-full tracking-wide uppercase"
+          >
+            Destacado
+          </div>
+
+          <!-- Date badge -->
+          <div
+            class="absolute top-2.5 left-2.5 bg-white rounded-xl px-2.5 py-1 text-center min-w-[44px] shadow-sm"
+          >
+            <p
+              class="text-[9px] font-bold text-neutral/60 uppercase leading-none"
+            >
+              {{ event.month }}
+            </p>
+            <p class="text-xl font-black text-neutral leading-none">
+              {{ event.day }}
+            </p>
+          </div>
+
+          <!-- Info overlay -->
+          <div class="absolute bottom-0 left-0 right-0 p-3">
+            <p class="text-white font-bold text-sm leading-tight">
+              {{ event.title }}
+            </p>
+            <p class="text-white/70 text-[11px] mt-0.5 flex items-center gap-1">
+              <ion-icon name="location-outline" class="text-xs"></ion-icon>
+              {{ event.location }}
+            </p>
+          </div>
+        </a>
+      }
+    </div>
+  </section>
+
+  <!-- ── Próximos Eventos ── -->
+  <section class="flex flex-col gap-3">
+    <div class="flex justify-between items-center">
+      <h2 class="text-lg font-bold text-neutral">Próximos eventos</h2>
+      <button class="text-sm font-bold text-primary">Ver todo</button>
+    </div>
+
+    <div class="flex flex-col gap-2">
+      @for (event of upcomingEvents(); track event.id) {
+        <a
+          [routerLink]="['/events', event.id]"
+          class="flex items-center gap-3 bg-white rounded-2xl p-3 border border-surface-dim/40 shadow-sm active:scale-[0.99] transition-transform"
+        >
+          <img
+            [src]="event.image"
+            [alt]="event.title"
+            class="w-16 h-16 rounded-xl object-cover flex-shrink-0"
+          />
+          <div class="flex-1 min-w-0">
+            <p class="text-[11px] font-semibold text-primary/80 mb-0.5">
+              {{ event.month }} {{ event.day }} · {{ event.time }}
+            </p>
+            <p
+              class="text-sm font-bold text-neutral leading-tight line-clamp-1"
+            >
+              {{ event.title }}
+            </p>
+            <p
+              class="text-xs text-neutral/55 mt-0.5 line-clamp-1 flex items-center gap-1"
+            >
+              <ion-icon
+                name="location-outline"
+                class="text-xs text-primary flex-shrink-0"
+              ></ion-icon>
+              {{ event.location }}
+            </p>
+          </div>
+        </a>
+      }
+    </div>
+  </section>
+
+  <!-- ── Recomendados para ti ── -->
+  <section class="flex flex-col gap-3">
+    <div class="flex items-center gap-1.5">
+      <ion-icon
+        name="trending-up-outline"
+        class="text-xl text-primary"
+      ></ion-icon>
+      <h2 class="text-lg font-bold text-neutral">Recomendados para ti</h2>
+    </div>
+
+    <div class="flex gap-3 overflow-x-auto no-scrollbar -mx-4 px-4 pb-1">
+      @for (event of recommendedEvents(); track event.id) {
+        <a
+          [routerLink]="['/events', event.id]"
+          class="flex-shrink-0 w-56 rounded-2xl overflow-hidden shadow-sm relative block active:scale-[0.98] transition-transform"
+        >
+          <img
+            [src]="event.image"
+            [alt]="event.title"
+            class="w-full h-36 object-cover"
+          />
+
+          <!-- Gradient -->
+          <div
+            class="absolute inset-0 bg-gradient-to-t from-black/65 via-black/10 to-transparent"
+          ></div>
+
+          <!-- Date badge -->
+          <div
+            class="absolute top-2.5 left-2.5 bg-white rounded-xl px-2.5 py-1 text-center min-w-[44px] shadow-sm"
+          >
+            <p
+              class="text-[9px] font-bold text-neutral/60 uppercase leading-none"
+            >
+              {{ event.month }}
+            </p>
+            <p class="text-xl font-black text-neutral leading-none">
+              {{ event.day }}
+            </p>
+          </div>
+
+          <!-- Price badge -->
+          <div
+            class="absolute top-2.5 right-2.5 bg-white/90 backdrop-blur-sm text-primary text-[11px] font-black px-2 py-1 rounded-full shadow-sm"
+          >
+            {{ event.price }}
+          </div>
+
+          <!-- Info overlay -->
+          <div class="absolute bottom-0 left-0 right-0 p-3">
+            <p class="text-white font-bold text-sm leading-tight line-clamp-1">
+              {{ event.title }}
+            </p>
+            <p class="text-white/70 text-[11px] mt-0.5 flex items-center gap-1">
+              <ion-icon name="location-outline" class="text-xs"></ion-icon>
+              {{ event.city }}
+            </p>
+          </div>
+        </a>
+      }
+    </div>
+  </section>
+</div>

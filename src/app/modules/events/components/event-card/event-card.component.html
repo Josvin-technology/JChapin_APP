@@ -1,0 +1,55 @@
+<article
+  (click)="onCardClick()"
+  [routerLink]="['/events', event.id]"
+  class="bg-surface-container-lowest rounded-3xl overflow-hidden shadow-sm border border-surface-container active:scale-[0.99] transition-transform cursor-pointer"
+>
+  <div class="relative h-52 bg-surface-container-high">
+    <img
+      [src]="event.image"
+      [alt]="event.title"
+      class="w-full h-full object-cover"
+    />
+
+    @if (event.popular) {
+      <div
+        class="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-3 py-1 rounded-full flex items-center gap-1"
+      >
+        <ion-icon [icon]="flameIcon" class="text-sm text-primary"></ion-icon>
+        <span class="text-[11px] font-bold text-primary">Popular</span>
+      </div>
+    }
+
+    <div
+      class="absolute top-3 right-3 bg-primary text-white px-2.5 py-1.5 rounded-xl text-center min-w-[48px]"
+    >
+      <div class="text-[10px] font-semibold uppercase">{{ event.month }}</div>
+      <div class="text-xl font-black leading-none">{{ event.day }}</div>
+    </div>
+  </div>
+
+  <div class="p-5 flex flex-col gap-2">
+    <div class="flex justify-between items-start gap-2">
+      <h3 class="text-base font-bold text-on-surface leading-tight">
+        {{ event.title }}
+      </h3>
+      <span class="text-base font-black shrink-0" [class]="event.priceColor">
+        {{ event.price }}
+      </span>
+    </div>
+
+    <div class="flex items-center gap-4 text-xs text-on-surface-variant">
+      <div class="flex items-center gap-1">
+        <ion-icon [icon]="timeIcon" class="text-sm"></ion-icon>
+        <span>{{ event.time }}</span>
+      </div>
+      <div class="flex items-center gap-1">
+        <ion-icon [icon]="locationIcon" class="text-sm"></ion-icon>
+        <span>{{ event.location }}</span>
+      </div>
+    </div>
+
+    <p class="text-sm text-on-surface-variant line-clamp-2 leading-relaxed">
+      {{ event.description }}
+    </p>
+  </div>
+</article>

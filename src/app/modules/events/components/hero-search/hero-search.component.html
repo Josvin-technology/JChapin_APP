@@ -1,0 +1,88 @@
+<section class="flex flex-col gap-5">
+  <!-- User header -->
+  @if (isLoggedIn()) {
+    <div class="flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <img
+          [src]="avatarUrl()"
+          [alt]="userName()"
+          class="w-11 h-11 rounded-full object-cover ring-2 ring-primary/20"
+        />
+        <div class="leading-tight">
+          <p class="text-xs text-neutral/55 font-medium">Hola,</p>
+          <p class="text-base font-bold text-neutral">{{ userName() }} 👋</p>
+        </div>
+      </div>
+      <button
+        class="relative w-10 h-10 flex items-center justify-center rounded-full bg-white border border-surface-dim/50 shadow-sm active:scale-95 transition-transform"
+      >
+        <ion-icon
+          name="notifications-outline"
+          class="text-xl text-neutral"
+        ></ion-icon>
+        <span
+          class="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-red-500 ring-2 ring-white"
+        ></span>
+      </button>
+    </div>
+  }
+
+  <!-- Location + Title -->
+  <div class="flex flex-col gap-1.5">
+    <div class="flex items-center gap-1">
+      <ion-icon
+        name="location-outline"
+        class="text-sm text-primary flex-shrink-0"
+      ></ion-icon>
+      <p class="text-xs text-neutral/55 font-medium">{{ location }}</p>
+    </div>
+    <h1
+      class="text-[27px] font-black leading-tight text-neutral tracking-tight"
+    >
+      Descubre eventos <br /><span class="text-primary">cerca de ti</span>
+    </h1>
+  </div>
+
+  <!-- Search bar -->
+  <div class="relative flex items-center">
+    <ion-icon
+      name="search-outline"
+      class="absolute left-4 text-lg text-outline pointer-events-none z-10"
+    ></ion-icon>
+    <input
+      type="text"
+      placeholder="Buscar eventos, organizadores..."
+      class="w-full pl-11 pr-4 py-3.5 rounded-2xl border border-surface-dim/50 bg-white text-sm text-neutral placeholder:text-neutral/40 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all"
+    />
+  </div>
+
+  <!-- Quick actions -->
+  <div class="grid grid-cols-4 gap-2">
+    @for (action of quickActions; let i = $index; track action.label) {
+      <a
+        [routerLink]="action.route"
+        class="flex flex-col items-center gap-2 active:scale-95 transition-transform"
+      >
+        <div
+          class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm border"
+          [class.bg-primary]="i === 2"
+          [class.border-primary]="i === 2"
+          [class.bg-white]="i !== 2"
+          [class.border-surface-dim/50]="i !== 2"
+        >
+          <ion-icon
+            [name]="action.icon"
+            class="text-[22px]"
+            [class.text-white]="i === 2"
+            [class.text-primary]="i !== 2"
+          >
+          </ion-icon>
+        </div>
+        <span
+          class="text-[11px] font-semibold text-neutral/60 text-center leading-none"
+          >{{ action.label }}</span
+        >
+      </a>
+    }
+  </div>
+</section>

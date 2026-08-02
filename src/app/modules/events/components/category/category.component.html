@@ -1,0 +1,21 @@
+<button
+  type="button"
+  (click)="onClick()"
+  class="flex-shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-full border text-xs font-semibold transition-all active:scale-95 whitespace-nowrap"
+  [class.bg-primary]="active"
+  [class.text-white]="active"
+  [class.border-primary]="active"
+  [class.shadow-md]="active"
+  [class.bg-white]="!active"
+  [class.text-neutral]="!active"
+  [class.border-surface-dim]="!active"
+>
+  <ion-icon
+    [name]="icon"
+    class="text-base flex-shrink-0"
+    [class.text-white]="active"
+    [class.text-primary]="!active"
+  >
+  </ion-icon>
+  <span>{{ label }}</span>
+</button>

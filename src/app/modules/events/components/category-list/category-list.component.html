@@ -1,0 +1,17 @@
+<section class="flex flex-col gap-3">
+  <div class="flex justify-between items-center">
+    <h2 class="text-lg font-bold text-neutral">Categorías</h2>
+    <button class="text-sm font-bold text-primary">Ver todo</button>
+  </div>
+
+  <div class="flex gap-2 overflow-x-auto no-scrollbar pb-1 -mx-4 px-4">
+    @for (cat of categories; track cat.label) {
+      <app-category
+        [label]="cat.label"
+        [icon]="cat.icon"
+        [active]="activeCategory() === cat.label"
+        (btnClicked)="selectCategory($event)"
+      />
+    }
+  </div>
+</section>

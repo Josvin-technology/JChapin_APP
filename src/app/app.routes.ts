@@ -38,4 +38,8 @@ export const routes: Routes = [
       },
     ],
   },
+  {
+    path: 'event-detail',
+    loadComponent: () => import('./modules/events/pages/event-detail/event-detail.page').then( m => m.EventDetailPage)
+  },
 ];
