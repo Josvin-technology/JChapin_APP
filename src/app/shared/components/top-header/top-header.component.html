@@ -1,0 +1,36 @@
+<header
+  class="fixed top-0 left-0 right-0 z-50 w-full bg-white border-b border-gray-100 shadow-sm"
+  style="padding-top: env(safe-area-inset-top, 0px)"
+>
+  <div class="h-16 px-4 flex items-center justify-between max-w-md mx-auto">
+    <!-- Ubicación -->
+    <div class="flex items-center gap-2">
+      <ion-icon
+        [icon]="locationIcon"
+        class="text-lg text-primary shrink-0"
+      ></ion-icon>
+      <div class="flex flex-col leading-none">
+        <span class="text-[10px] font-medium text-primary">Ubicación</span>
+        <span class="text-sm font-bold text-secondary"
+          >Ciudad de Guatemala</span
+        >
+      </div>
+    </div>
+
+    <!-- Brand -->
+    <span class="text-xl font-bold text-primary tracking-tight">JChapín</span>
+
+    <!-- Avatar -->
+    <a
+      routerLink="/profile"
+      class="w-9 h-9 rounded-full overflow-hidden border-2 border-primary/20 shrink-0 active:scale-95 transition-transform"
+    >
+      <img
+        src="assets/images/user-avatar.jpg"
+        alt="Perfil"
+        class="w-full h-full object-cover"
+        onerror="this.src = 'assets/icon/icon.png'"
+      />
+    </a>
+  </div>
+</header>
