@@ -1,0 +1,123 @@
+<ion-content [fullscreen]="true">
+  <div class="px-5 pt-6 pb-20">
+    <!-- Header -->
+
+    <div class="flex items-center gap-4 mb-6">
+      <button
+        (click)="onClose()"
+        class="w-12 h-12 !rounded-full bg-white border border-gray-200 shadow-sm flex items-center justify-center"
+      >
+        <ion-icon name="chevron-back"> </ion-icon>
+      </button>
+
+      <h1 class="text-3xl font-bold">Tu ticket</h1>
+    </div>
+
+    <!-- Card principal -->
+
+    <div class="bg-primary text-white !rounded-[32px] p-6 mb-5">
+      <div class="flex justify-between items-center">
+        <span class="text-xs font-semibold tracking-wider">
+          JCHAPÍN · TICKET
+        </span>
+
+        <span class="text-emerald-300 font-semibold"> ✓ Válido </span>
+      </div>
+
+      <h2 class="text-2xl font-bold mt-5">{{ ticket?.title }}</h2>
+
+      <p class="opacity-80 mt-1">{{ ticket?.type }}</p>
+
+      <div class="grid grid-cols-2 gap-6 mt-8">
+        <div>
+          <div class="text-xs uppercase opacity-70">Fecha</div>
+
+          <div class="font-semibold mt-1">{{ ticket?.date }}</div>
+        </div>
+
+        <div>
+          <div class="text-xs uppercase opacity-70">Hora</div>
+
+          <div class="font-semibold mt-1">{{ ticket?.time }}</div>
+        </div>
+
+        <div>
+          <div class="text-xs uppercase opacity-70">Ubicación</div>
+
+          <div class="font-semibold mt-1">{{ ticket?.location }}</div>
+        </div>
+
+        <div>
+          <div class="text-xs uppercase opacity-70">Código</div>
+
+          <div class="font-semibold mt-1">{{ ticket?.code }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- QR -->
+
+    <div class="bg-white !rounded-[32px] p-6 shadow-sm -mt-8 relative z-10">
+      <div class="flex justify-center">
+        <div
+          class="w-60 h-60 rounded-3xl bg-white shadow-inner flex items-center justify-center p-4"
+        >
+          <img
+            [src]="qrUrl"
+            [alt]="ticket?.code"
+            class="w-full h-full object-contain"
+          />
+        </div>
+      </div>
+
+      <div class="text-center mt-6">
+        <div class="font-mono font-semibold text-sm">{{ ticket?.code }}</div>
+
+        <p class="text-gray-500 text-sm mt-1">
+          Muestra este código en la entrada
+        </p>
+      </div>
+
+      <!-- Acciones -->
+
+      <div class="flex gap-3 mt-6">
+        <button
+          class="flex-1 h-12 !rounded-full border border-gray-200 flex items-center justify-center gap-2 hover:bg-gray-200 transition"
+        >
+          <ion-icon name="download-outline"></ion-icon>
+
+          Descargar
+        </button>
+
+        <button
+          class="flex-1 h-12 !rounded-full border border-gray-200 flex items-center justify-center gap-2 hover:bg-gray-200 transition"
+        >
+          <ion-icon name="share-social-outline"></ion-icon>
+
+          Compartir
+        </button>
+      </div>
+    </div>
+
+    <!-- Recordatorio -->
+
+    <div class="bg-white rounded-3xl p-5 shadow-sm mt-5">
+      <div class="flex items-center gap-4">
+        <div
+          class="w-12 h-12 rounded-full bg-blue-50 flex items-center justify-center"
+        >
+          <ion-icon name="calendar-outline" class="text-blue-500 text-xl">
+          </ion-icon>
+        </div>
+
+        <div>
+          <h4 class="font-semibold">Recordatorio del evento</h4>
+
+          <p class="text-sm text-gray-500">
+            Te enviaremos una notificación antes del evento.
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</ion-content>

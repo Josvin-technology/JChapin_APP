@@ -1,0 +1,54 @@
+<a class="block mb-1" [routerLink]="['/tickets', ticket.id]">
+  <div
+    class="flex bg-white !rounded-3xl overflow-hidden border border-gray-200 shadow-sm"
+  >
+    <div class="w-24 h-24 relative shrink-0">
+      <!-- Imagen -->
+      <img [src]="ticket.imagen" class="w-full h-full object-cover" />
+      <!-- overlay -->
+      <div
+        class="absolute inset-0 bg-gradient-to-tr from-primary/40 to-secondary/40"
+      ></div>
+      <!-- fecha -->
+      <div
+        class="absolute inset-0 flex flex-col justify-center items-center text-white"
+      >
+        <span class="text-sm font-bold">
+          {{ ticket.month }}
+        </span>
+
+        <span class="text-sm font-bold">
+          {{ ticket.day }}
+        </span>
+      </div>
+    </div>
+
+    <!-- info -->
+    <div class="flex-1 p-4 flex items-center">
+      <div class="flex-1">
+        <div class="flex items-center gap-2">
+          <span
+            class="w-2 h-2 rounded-full"
+            [class.bg-emerald-500]="ticket.status === 'active'"
+            [class.bg-gray-400]="ticket.status !== 'active'"
+          >
+          </span>
+
+          <span class="text-xs uppercase text-gray-500 font-semibold">
+            {{ ticket.type }}
+          </span>
+        </div>
+
+        <h3 class="font-semibold text-lg mt-1">
+          {{ ticket.title }}
+        </h3>
+
+        <p class="text-sm text-gray-500">
+          {{ ticket.time }} · {{ ticket.location }}
+        </p>
+      </div>
+
+      <ion-icon [icon]="chevronIcon" class="text-gray-400 text-xl"> </ion-icon>
+    </div>
+  </div>
+</a>

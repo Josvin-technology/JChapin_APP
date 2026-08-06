@@ -1,0 +1,41 @@
+<ion-content [fullscreen]="true">
+  <div class="px-5 pt-2">
+    <!-- Header -->
+    <div>
+      <h1 class="text-2xl font-bold tex-neutral">Mis Tickets</h1>
+      <p class="text-sm text-gray-500 mt-1">Entradas digitales y QR</p>
+    </div>
+
+    <!-- tabs -->
+    <div class="mt-6 bg-surface-dim p-1 !rounded-2xl flex">
+      <button
+        class="flex-1 h-10 !rounded-xl transition-all"
+        (click)="selectedTab = 'active'"
+        [class.bg-white]="selectedTab === 'active'"
+        [class.shadow-sm]="selectedTab === 'active'"
+      >
+        Activos {{ activeTickets.length }}
+      </button>
+
+      <button
+        class="flex-1 h-10 !rounded-xl transition-all"
+        (click)="selectedTab = 'history'"
+        [class.bg-white]="selectedTab === 'history'"
+        [class.shadow-sm]="selectedTab === 'history'"
+      >
+        Historial {{ historyTickets.length }}
+      </button>
+    </div>
+
+    <!-- List Tickets -->
+    <div class="mt-5 space-y-4">
+      @if (selectedTab === 'active'){ @for(ticket of activeTickets; track
+      ticket.id){
+      <app-ticket-card [ticket]="ticket" />
+      } } @if (selectedTab === 'history'){ @for(ticket of historyTickets; track
+      ticket.id){
+      <app-ticket-card [ticket]="ticket" />
+      } }
+    </div>
+  </div>
+</ion-content>

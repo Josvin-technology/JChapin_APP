@@ -43,6 +43,20 @@ export const routes: Routes = [
             (m) => m.ExplorePage,
           ),
       },
+      {
+        path: 'tickets/:id',
+        loadComponent: () =>
+          import('./modules/tickets/pages/ticket-detail/ticket-detail.page').then(
+            (m) => m.TicketDetailPage,
+          ),
+      },
+      {
+        path: 'tickets',
+        loadComponent: () =>
+          import('./modules/tickets/pages/home/home.page').then(
+            (m) => m.HomePage,
+          ),
+      },
     ],
   },
   {
