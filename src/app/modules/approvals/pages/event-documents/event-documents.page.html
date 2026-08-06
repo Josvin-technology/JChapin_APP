@@ -1,0 +1,142 @@
+<ion-content [fullscreen]="false" [scrollY]="true">
+  <main
+    class="w-full max-w-md mx-auto px-4 flex flex-col gap-5"
+    style="
+      padding-top: calc(1.25rem + env(safe-area-inset-top, 0px));
+      padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+    "
+  >
+    <!-- Header -->
+    <div class="flex items-center gap-3">
+      <button
+        (click)="goBack()"
+        class="w-9 h-9 rounded-full flex items-center justify-center bg-white border border-surface-dim/40 shadow-sm"
+      >
+        <ion-icon
+          name="chevron-back-outline"
+          class="text-lg text-neutral"
+        ></ion-icon>
+      </button>
+      <div class="flex-1 min-w-0">
+        <h1 class="text-2xl font-black text-neutral leading-tight">
+          Documentos
+        </h1>
+        <p class="text-xs text-neutral/50">
+          Sube los permisos que solicitó el aprobador
+        </p>
+      </div>
+    </div>
+
+    @if (loading()) {
+    <div class="flex justify-center py-12">
+      <ion-spinner name="crescent" class="text-primary"></ion-spinner>
+    </div>
+    } @else if (!approval() || approval()?.documents?.length === 0) {
+    <!-- Sin checklist: el aprobador todavía no pidió documentos -->
+    <div class="flex flex-col items-center py-12 gap-3 text-center">
+      <span class="text-4xl">📄</span>
+      <p class="text-sm font-bold text-neutral/60">
+        El aprobador aún no ha solicitado documentos para este evento.
+      </p>
+    </div>
+    } @else {
+    <!-- Comentario del aprobador -->
+    @if (approval()?.reviewerComment) {
+    <div class="bg-amber-50 border border-amber-100 rounded-2xl px-4 py-3">
+      <p
+        class="text-[11px] font-bold text-amber-700 uppercase tracking-wide mb-1"
+      >
+        Mensaje del aprobador
+      </p>
+      <p class="text-sm text-neutral/80">{{ approval()?.reviewerComment }}</p>
+    </div>
+    }
+
+    <!-- Progreso -->
+    @if (allUploaded()) {
+    <div
+      class="flex items-center gap-2 bg-primary/10 text-primary rounded-2xl px-4 py-3 text-sm font-semibold"
+    >
+      <ion-icon name="checkmark-circle" class="text-lg"></ion-icon>
+      Ya subiste todos los documentos. El aprobador los revisará.
+    </div>
+    } @else {
+    <p class="text-xs font-semibold text-neutral/60">
+      Faltan {{ pendingCount() }} de {{ approval()?.documents?.length }}
+      documentos
+    </p>
+    }
+
+    <!-- Checklist de documentos -->
+    <section class="flex flex-col gap-3">
+      @for (doc of approval()?.documents; track doc.id) {
+      <div
+        class="bg-white rounded-2xl border border-surface-dim/40 shadow-sm p-4 flex flex-col gap-3"
+      >
+        <div class="flex items-start justify-between gap-2">
+          <div class="min-w-0">
+            <p class="text-sm font-bold text-neutral leading-tight">
+              {{ doc.name }}
+            </p>
+            @if (doc.status === 'uploaded' && doc.fileName) {
+            <p class="text-[11px] text-neutral/50 mt-0.5 line-clamp-1">
+              {{ doc.fileName }}
+            </p>
+            }
+          </div>
+          @if (doc.status === 'uploaded') {
+          <span
+            class="inline-flex items-center gap-1 text-[11px] font-bold text-primary whitespace-nowrap"
+          >
+            <ion-icon name="checkmark-circle"></ion-icon> Cargado
+          </span>
+          } @else {
+          <span
+            class="px-2 py-1 rounded-full text-[10px] font-bold bg-red-50 text-red-500 whitespace-nowrap"
+          >
+            Falta
+          </span>
+          }
+        </div>
+
+        <div class="flex gap-2">
+          <!-- Botón de subida (input file oculto, solo PDF) -->
+          <label
+            class="flex-1 h-10 flex items-center justify-center gap-2 rounded-full border text-xs font-bold cursor-pointer transition-colors"
+            [class.border-primary]="doc.status !== 'uploaded'"
+            [class.text-primary]="doc.status !== 'uploaded'"
+            [class.bg-primary]="false"
+            [class.border-surface-dim]="doc.status === 'uploaded'"
+            [class.text-neutral]="doc.status === 'uploaded'"
+          >
+            @if (uploadingId() === doc.id) {
+            <ion-spinner name="crescent" class="w-4 h-4"></ion-spinner>
+            Subiendo… } @else {
+            <ion-icon name="cloud-upload-outline" class="text-base"></ion-icon>
+            {{ doc.status === 'uploaded' ? 'Reemplazar PDF' : 'Subir PDF' }} }
+            <input
+              type="file"
+              accept="application/pdf"
+              class="hidden"
+              [disabled]="uploadingId() !== null"
+              (change)="onFileSelected($event, doc)"
+            />
+          </label>
+
+          @if (doc.status === 'uploaded') {
+          <button
+            type="button"
+            (click)="openDocument(doc)"
+            class="h-10 px-4 flex items-center justify-center gap-1 rounded-full bg-surface text-neutral text-xs font-bold"
+          >
+            <ion-icon name="document-text-outline" class="text-base"></ion-icon>
+            Ver
+          </button>
+          }
+        </div>
+      </div>
+      }
+    </section>
+    }
+  </main>
+</ion-content>

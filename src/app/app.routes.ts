@@ -110,4 +110,12 @@ export const routes: Routes = [
       },
     ],
   },
+  {
+    path: 'approvals',
+    loadComponent: () => import('./modules/approvals/pages/approvals/approvals.page').then( m => m.ApprovalsPage)
+  },
+  {
+    path: 'event-documents',
+    loadComponent: () => import('./modules/approvals/pages/event-documents/event-documents.page').then( m => m.EventDocumentsPage)
+  },
 ];
