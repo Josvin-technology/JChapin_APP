@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { permissionGuard } from './core/guards/permission-guard';
 
 export const routes: Routes = [
   {
@@ -55,6 +56,24 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./modules/tickets/pages/home/home.page').then(
             (m) => m.HomePage,
+          ),
+      },
+      {
+        path: 'creates-event',
+        canActivate: [permissionGuard],
+        data: { permission: 'events.manage' },
+        loadComponent: () =>
+          import('./modules/events/pages/create-event/create-event.page').then(
+            (m) => m.CreateEventPage,
+          ),
+      },
+      {
+        path: 'events-mine',
+        canActivate: [permissionGuard],
+        data: { permission: 'events.manage' },
+        loadComponent: () =>
+          import('./modules/events/pages/my-events/my-events.page').then(
+            (m) => m.MyEventsPage,
           ),
       },
     ],

@@ -1,0 +1,532 @@
+<ion-header class="ion-no-border">
+  <div
+    class="bg-white px-4 pt-4 pb-2 flex items-center justify-between border-b border-gray-100"
+  >
+    <button
+      (click)="goBack()"
+      class="w-10 h-10 flex items-center justify-center !rounded-full bg-gray-100 text-gray-600"
+    >
+      <ion-icon name="chevron-back-outline" class="text-xl"></ion-icon>
+    </button>
+    <div class="flex-1 text-center">
+      <h1 class="text-xl font-bold text-gray-900">Crear evento</h1>
+      <p class="text-xs text-gray-400">
+        Paso {{ step() }} de {{ totalSteps }} · {{ step() === 1 ? 'Información'
+        : step() === 2 ? 'Ubicación' : step() === 3 ? 'Categoría' : 'Precio' }}
+      </p>
+    </div>
+    <div class="w-10"></div>
+  </div>
+
+  <!-- Stepper -->
+  <div
+    class="flex items-center gap-1 px-4 py-3 bg-white border-b border-gray-100"
+  >
+    @for (i of [1,2,3,4]; track i) {
+    <div
+      class="flex-1 h-1 rounded-full transition-colors"
+      [class.bg-primary]="i <= step()"
+      [class.bg-gray-200]="i > step()"
+    ></div>
+    }
+  </div>
+</ion-header>
+
+<ion-content [fullscreen]="false" [scrollY]="true">
+  <form [formGroup]="eventForm" class="p-4 space-y-5 pb-32">
+    <!-- ── PASO 1: Información ── -->
+    @if (step() === 1) {
+    <section class="flex flex-col gap-4">
+      <!-- Título -->
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-semibold text-primary"
+          >Título del evento:</label
+        >
+        <input
+          type="text"
+          formControlName="title"
+          placeholder="Ingrese el título"
+          class="w-full h-11 px-4 border rounded-full transition-colors outline-none text-sm"
+          [class.border-primary]="!isInvalid('title')"
+          [class.border-red-500]="isInvalid('title')"
+        />
+        @if (isInvalid('title')) {
+        <p class="text-red-600 text-xs font-semibold ml-1">
+          @if (ctrl('title')?.errors?.['required']) { El título es requerido. }
+          @else { Mínimo 5 caracteres. }
+        </p>
+        }
+      </div>
+
+      <!-- Descripción -->
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-semibold text-primary">Descripción:</label>
+        <textarea
+          formControlName="description"
+          placeholder="Cuéntale a tu comunidad de qué trata..."
+          rows="4"
+          class="w-full p-4 border rounded-2xl text-sm resize-none transition-colors outline-none"
+          [class.border-primary]="!isInvalid('description')"
+          [class.border-red-500]="isInvalid('description')"
+        ></textarea>
+        @if (isInvalid('description')) {
+        <p class="text-red-600 text-xs font-semibold ml-1">
+          La descripción es obligatoria.
+        </p>
+        }
+      </div>
+
+      <!-- Fecha -->
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-semibold text-primary"
+          >Fecha del evento:</label
+        >
+        <div
+          class="relative w-full h-11 px-4 border rounded-full flex items-center justify-between transition-colors"
+          [class.border-primary]="!isInvalid('date')"
+          [class.border-red-500]="isInvalid('date')"
+        >
+          <ion-datetime-button datetime="eventDate"></ion-datetime-button>
+          <ion-icon
+            name="calendar-outline"
+            class="text-lg text-gray-400 flex-shrink-0"
+          ></ion-icon>
+        </div>
+        <ion-modal [keepContentsMounted]="true">
+          <ng-template>
+            <ion-datetime
+              id="eventDate"
+              presentation="date"
+              locale="es-GT"
+              [value]="ctrl( 'date')?.value || null"
+              [showDefaultButtons]="true"
+              doneText="Lito"
+              cancelText="Cancelar"
+              (ionChange)="onDateTimeChange('date',$event)"
+            >
+            </ion-datetime>
+          </ng-template>
+        </ion-modal>
+        @if (isInvalid('date')) {
+        <p class="text-red-600 text-xs font-semibold ml-1">
+          La fecha es obligatoria.
+        </p>
+        }
+      </div>
+
+      <!-- Hora inicio / fin -->
+      <div class="grid grid-cols-2 gap-4">
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-semibold text-primary">Hora inicio:</label>
+          <div
+            class="native-picker w-full h-11 px-4 border rounded-full flex items-center justify-between transition-colors"
+            [class.border-primary]="!isInvalid('startTime')"
+            [class.border-red-500]="isInvalid('startTime')"
+          >
+            <ion-datetime-button datetime="startTime"></ion-datetime-button>
+            <ion-icon
+              name="time-outline"
+              class="text-lg text-gray-400 flex-shrink-0"
+            ></ion-icon>
+          </div>
+          <ion-modal [keepContentsMounted]="true">
+            <ng-template>
+              <ion-datetime
+                id="startTime"
+                presentation="time"
+                locale="es-GT"
+                [value]="timeToIso(ctrl('startTime')?.value)"
+                [showDefaultButtons]="true"
+                doneText="Listo"
+                cancelText="Cancelar"
+                (ionChange)="onDateTimeChange('startTime', $event)"
+              ></ion-datetime>
+            </ng-template>
+          </ion-modal>
+          @if (isInvalid('startTime')) {
+          <p class="text-red-600 text-xs font-semibold ml-1">Requerido.</p>
+          }
+        </div>
+
+        <div class="flex flex-col gap-1">
+          <label class="text-sm font-semibold text-primary">Hora fin:</label>
+          <div
+            class="native-picker w-full h-11 px-4 border rounded-full flex items-center justify-between transition-colors"
+            [class.border-primary]="!isInvalid('endTime')"
+            [class.border-red-500]="isInvalid('endTime')"
+          >
+            <ion-datetime-button datetime="endTime"></ion-datetime-button>
+            <ion-icon
+              name="time-outline"
+              class="text-lg text-gray-400 flex-shrink-0"
+            ></ion-icon>
+          </div>
+          <ion-modal [keepContentsMounted]="true">
+            <ng-template>
+              <ion-datetime
+                id="endTime"
+                presentation="time"
+                locale="es-GT"
+                [value]="timeToIso(ctrl('endTime')?.value)"
+                [showDefaultButtons]="true"
+                doneText="Listo"
+                cancelText="Cancelar"
+                (ionChange)="onDateTimeChange('endTime', $event)"
+              ></ion-datetime>
+            </ng-template>
+          </ion-modal>
+          @if (isInvalid('endTime')) {
+          <p class="text-red-600 text-xs font-semibold ml-1">Requerido.</p>
+          }
+        </div>
+      </div>
+
+      <!-- Repetir evento -->
+      <label
+        class="flex items-center justify-between px-3 py-3 border border-primary rounded-2xl"
+      >
+        <span class="text-sm font-bold text-primary"
+          >¿Se repite el evento?</span
+        >
+        <input
+          type="checkbox"
+          formControlName="repeats"
+          class="w-5 h-5 accent-primary"
+        />
+      </label>
+
+      @if (eventForm.get('repeats')?.value) {
+      <section
+        class="flex flex-col gap-4 p-4 border border-primary !rounded-xl"
+        formArrayName="occurrences"
+      >
+        <h3 class="font-bold text-primary text-sm">Fechas adicionales</h3>
+        @for (occ of occurrences.controls; track $index; let i = $index) {
+        <div [formGroupName]="i" class="flex flex-col gap-3 border-b pb-4">
+          <div class="flex flex-col gap-1">
+            <label class="text-sm font-semibold text-primary"
+              >Fecha adicional {{ i + 1 }}</label
+            >
+            <input
+              type="date"
+              formControlName="date"
+              class="w-full h-11 px-4 border border-primary !rounded-full text-sm outline-none"
+            />
+          </div>
+          <div class="grid grid-cols-2 gap-4">
+            <div class="flex flex-col gap-1">
+              <label class="text-sm font-semibold text-primary">Inicio</label>
+              <input
+                type="time"
+                formControlName="startTime"
+                class="w-full h-11 px-4 border border-primary rounded-full text-sm outline-none"
+              />
+            </div>
+            <div class="flex flex-col gap-1">
+              <label class="text-sm font-semibold text-primary">Fin</label>
+              <input
+                type="time"
+                formControlName="endTime"
+                class="w-full h-11 px-4 border border-primary rounded-full text-sm outline-none"
+              />
+            </div>
+          </div>
+          <button
+            type="button"
+            class="text-red-600 font-bold text-sm text-left"
+            (click)="removeOccurrence(i)"
+          >
+            Quitar fecha
+          </button>
+        </div>
+        }
+        <button
+          type="button"
+          class="text-primary font-bold text-sm"
+          (click)="addOccurrence()"
+        >
+          + Agregar otra fecha
+        </button>
+      </section>
+      }
+    </section>
+    }
+
+    <!-- ── PASO 2: Ubicación ── -->
+    @if (step() === 2) {
+    <section class="flex flex-col gap-4">
+      <!-- Imagen de portada -->
+      <input
+        #fileInput
+        type="file"
+        accept="image/*"
+        hidden
+        (change)="onImageSelected($event)"
+      />
+      <button
+        class="w-full border-2 border-dashed border-primary !rounded-3xl p-6 flex flex-col items-center gap-2"
+        type="button"
+        (click)="fileInput.click()"
+      >
+        @if (coverPreview) {
+        <img
+          [src]="coverPreview"
+          class="w-full h-52 object-cover !rounded-2xl"
+        />
+        } @else {
+        <div
+          class="flex flex-col gap-3 items-center border border-primary p-4 !rounded-3xl w-full"
+        >
+          <ion-icon
+            name="image-outline"
+            class="text-4xl text-primary"
+          ></ion-icon>
+          <strong class="text-sm">Subir imagen de portada</strong>
+          <small class="text-gray-400">Recomendado 1600x900</small>
+        </div>
+        }
+      </button>
+
+      <!-- Dirección -->
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-semibold text-primary">Dirección</label>
+        <input
+          type="text"
+          formControlName="address"
+          placeholder="Calle, número, referencia"
+          class="w-full h-11 px-4 border rounded-full text-sm outline-none transition-colors"
+          [class.border-primary]="!isInvalid('address')"
+          [class.border-red-500]="isInvalid('address')"
+        />
+        @if (isInvalid('address')) {
+        <p class="text-red-600 text-xs font-semibold ml-1">
+          @if (ctrl('address')?.errors?.['required']) { La dirección es
+          requerida. } @else { Mínimo 3 caracteres. }
+        </p>
+        }
+      </div>
+
+      <!-- Ciudad / Zona -->
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-semibold text-primary">Ciudad / Zona</label>
+        <input
+          type="text"
+          formControlName="city"
+          placeholder="Ej. Zona 10, Guatemala"
+          class="w-full h-11 px-4 border border-primary rounded-full text-sm outline-none"
+        />
+      </div>
+
+      <!-- Mapa placeholder -->
+      <section class="border border-gray-200 !rounded-3xl p-4 text-center">
+        <div
+          class="h-44 flex flex-col items-center justify-center bg-gray-50 !rounded-2xl gap-2"
+        >
+          <ion-icon
+            name="location-outline"
+            class="text-4xl text-primary"
+          ></ion-icon>
+          <span class="text-sm text-gray-500"
+            >Selecciona la ubicación del evento.</span
+          >
+        </div>
+        <button type="button" class="mt-3 text-primary font-bold text-sm">
+          Abrir Mapa
+        </button>
+      </section>
+    </section>
+    }
+
+    <!-- ── PASO 3: Categoría ── -->
+    @if (step() === 3) {
+    <section class="flex flex-col gap-5">
+      <!-- Grid de categorías -->
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-semibold text-primary"
+          >Categoría del evento</label
+        >
+        <div class="grid grid-cols-4 gap-2">
+          @for (cat of categories; track cat.id) {
+          <button
+            type="button"
+            class="flex flex-col items-center gap-1 p-2 border rounded-2xl transition-colors text-center"
+            [class.border-primary]="eventForm.get('categoryId')?.value === cat.id"
+            [class.bg-primary/10]="eventForm.get('categoryId')?.value === cat.id"
+            [class.border-gray-200]="eventForm.get('categoryId')?.value !== cat.id"
+            (click)="selectCategory(cat.id)"
+          >
+            <span class="text-2xl">{{ cat.icon }}</span>
+            <span class="text-[10px] font-semibold leading-tight"
+              >{{ cat.label }}</span
+            >
+          </button>
+          }
+        </div>
+        @if (ctrl('categoryId')?.touched && ctrl('categoryId')?.invalid) {
+        <p class="text-red-600 text-xs font-semibold ml-1">
+          Selecciona una categoría.
+        </p>
+        }
+      </div>
+
+      <!-- Aviso de permiso municipal -->
+      @if (selectedCategory?.requiresPermit) {
+      <div
+        class="flex items-start gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl"
+      >
+        <ion-icon
+          name="alert-circle-outline"
+          class="text-amber-500 text-xl flex-shrink-0 mt-0.5"
+        ></ion-icon>
+        <div>
+          <p class="text-sm font-bold text-amber-800">
+            Requiere permiso municipal
+          </p>
+          <p class="text-xs text-amber-700 mt-0.5">
+            Esta categoría necesita autorización de la municipalidad. Tendrás
+            que adjuntar los documentos en el siguiente paso.
+          </p>
+        </div>
+      </div>
+      }
+
+      <!-- Tipo de evento -->
+      <div class="flex flex-col gap-2">
+        <label class="text-sm font-semibold text-primary">Tipo de evento</label>
+        <div class="flex flex-col gap-2">
+          @for (tipo of [ {value: 'publico', label: 'Público', desc: 'Cualquier
+          persona puede ver y asistir'}, {value: 'privado', label: 'Privado /
+          Por invitación', desc: 'Solo personas con invitación'}, {value:
+          'registro', label: 'Con registro previo', desc: 'Requiere inscripción
+          anticipada'} ]; track tipo.value) {
+          <label
+            class="flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-colors"
+            [class.border-primary]="eventForm.get('eventType')?.value === tipo.value"
+            [class.bg-primary/5]="eventForm.get('eventType')?.value === tipo.value"
+            [class.border-gray-200]="eventForm.get('eventType')?.value !== tipo.value"
+          >
+            <input
+              type="radio"
+              formControlName="eventType"
+              [value]="tipo.value"
+              class="accent-primary"
+            />
+            <div>
+              <p class="text-sm font-semibold text-gray-800">
+                {{ tipo.label }}
+              </p>
+              <p class="text-xs text-gray-400">{{ tipo.desc }}</p>
+            </div>
+          </label>
+          }
+        </div>
+      </div>
+    </section>
+    }
+
+    <!-- ── PASO 4: Precio ── -->
+    @if (step() === 4) {
+    <section class="flex flex-col gap-5">
+      <!-- Precio -->
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-semibold text-primary"
+          >Precio de entrada (GTQ)</label
+        >
+        <input
+          type="number"
+          formControlName="price"
+          placeholder="0 = Gratis"
+          min="0"
+          class="w-full h-11 px-4 border rounded-full text-sm outline-none transition-colors"
+          [class.border-primary]="!isInvalid('price')"
+          [class.border-red-500]="isInvalid('price')"
+        />
+        <small class="text-xs text-gray-400 ml-1"
+          >Deja en 0 si tu evento es gratuito.</small
+        >
+        @if (isInvalid('price')) {
+        <p class="text-red-600 text-xs font-semibold ml-1">
+          Ingresa un precio válido (mínimo 0).
+        </p>
+        }
+      </div>
+
+      <!-- Capacidad -->
+      <div class="flex flex-col gap-1">
+        <label class="text-sm font-semibold text-primary"
+          >Capacidad / Aforo</label
+        >
+        <input
+          type="number"
+          formControlName="capacity"
+          placeholder="100"
+          min="1"
+          class="w-full h-11 px-4 border rounded-full text-sm outline-none transition-colors"
+          [class.border-primary]="!isInvalid('capacity')"
+          [class.border-red-500]="isInvalid('capacity')"
+        />
+        <small class="text-xs text-gray-400 ml-1"
+          >Número máximo de asistentes permitidos.</small
+        >
+        @if (isInvalid('capacity')) {
+        <p class="text-red-600 text-xs font-semibold ml-1">
+          La capacidad debe ser al menos 1.
+        </p>
+        }
+      </div>
+
+      <!-- Resumen -->
+      <div class="border border-gray-200 rounded-2xl p-4 flex flex-col gap-2">
+        <h3 class="font-bold text-primary text-sm mb-1">Resumen del evento</h3>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500">Título</span>
+          <span class="font-semibold text-gray-800 text-right max-w-[60%]"
+            >{{ ctrl('title')?.value || '—' }}</span
+          >
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500">Fecha</span>
+          <span class="font-semibold text-gray-800"
+            >{{ ctrl('date')?.value || '—' }}</span
+          >
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500">Horario</span>
+          <span class="font-semibold text-gray-800"
+            >{{ ctrl('startTime')?.value || '--:--' }} – {{
+            ctrl('endTime')?.value || '--:--' }}</span
+          >
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500">Dirección</span>
+          <span class="font-semibold text-gray-800 text-right max-w-[60%]"
+            >{{ ctrl('address')?.value || '—' }}</span
+          >
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500">Categoría</span>
+          <span class="font-semibold text-gray-800"
+            >{{ selectedCategory?.label || '—' }}</span
+          >
+        </div>
+        <div class="flex justify-between text-sm">
+          <span class="text-gray-500">Precio</span>
+          <span class="font-semibold text-gray-800">
+            {{ ctrl('price')?.value === 0 ? 'Gratis' : 'Q' +
+            ctrl('price')?.value }}
+          </span>
+        </div>
+      </div>
+    </section>
+    }
+  </form>
+
+  <app-footer-step
+    [step]="step()"
+    [totalSteps]="totalSteps"
+    [endStep]="endStep()"
+    [loading]="submitting()"
+    (back)="back()"
+    (next)="next()"
+  />
+</ion-content>
