@@ -1,0 +1,122 @@
+<ion-content [fullscreen]="false" [scrollY]="true">
+  <main
+    class="w-full max-w-md mx-auto px-4 flex flex-col gap-6"
+    style="
+      padding-top: calc(1.5rem + env(safe-area-inset-top, 0px));
+      padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+    "
+  >
+    <!-- Header -->
+    <div>
+      <h1 class="text-2xl font-black text-neutral">Mi agenda</h1>
+      <p class="text-xs text-neutral/50 mt-0.5">Tus eventos reservados</p>
+    </div>
+
+    <!-- Calendar card -->
+    <div
+      class="bg-white rounded-3xl border border-surface-dim/40 shadow-sm p-4"
+    >
+      <!-- Month navigation -->
+      <div class="flex items-center justify-between mb-4">
+        <button
+          (click)="prevMonth()"
+          class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-surface-dim/40 transition-colors"
+        >
+          <ion-icon
+            name="chevron-back-outline"
+            class="text-lg text-neutral"
+          ></ion-icon>
+        </button>
+        <span class="text-sm font-bold text-neutral">{{ monthLabel() }}</span>
+        <button
+          (click)="nextMonth()"
+          class="w-9 h-9 rounded-full flex items-center justify-center hover:bg-surface-dim/40 transition-colors"
+        >
+          <ion-icon
+            name="chevron-forward-outline"
+            class="text-lg text-neutral"
+          ></ion-icon>
+        </button>
+      </div>
+
+      <!-- Day of week headers -->
+      <div class="grid grid-cols-7 mb-2">
+        @for (label of dayLabels; track label) {
+        <div class="text-center text-[11px] font-bold text-neutral/40">
+          {{ label }}
+        </div>
+        }
+      </div>
+
+      <!-- Day grid -->
+      <div class="grid grid-cols-7 gap-y-1">
+        @for (day of calendarDays(); track $index) { @if (day.day === 0) {
+        <div></div>
+        } @else {
+        <button
+          (click)="selectDay(day.day)"
+          class="flex flex-col items-center justify-center h-10 rounded-full transition-all relative"
+          [class.bg-primary]="day.isSelected"
+          [class.bg-surface-dim/40]="day.isToday && !day.isSelected"
+        >
+          <span
+            class="text-sm font-semibold leading-none"
+            [class.text-white]="day.isSelected"
+            [class.text-primary]="day.isToday && !day.isSelected"
+            [class.text-secondary]="!day.isToday && !day.isSelected && day.day <= 7"
+            [class.text-neutral]="!day.isToday && !day.isSelected && day.day > 7"
+            >{{ day.day }}</span
+          >
+
+          @if (day.hasEvents) {
+          <span
+            class="absolute bottom-1 w-1 h-1 rounded-full"
+            [class.bg-white]="day.isSelected"
+            [class.bg-primary]="!day.isSelected"
+          >
+          </span>
+          }
+        </button>
+        } }
+      </div>
+    </div>
+
+    <!-- Events section -->
+    <section class="flex flex-col gap-3">
+      <h2 class="text-base font-bold text-neutral">{{ sectionTitle() }}</h2>
+
+      @if (selectedDayEvents().length === 0) {
+      <div class="flex flex-col items-center py-10 gap-2 text-center">
+        <span class="text-4xl">📅</span>
+        <p class="text-sm font-bold text-neutral/60">Sin tickets este día</p>
+      </div>
+      } @if(loading()){
+      <div class="flex justify-center py-10">
+        <ion-spinner name="crescent" class="text-primary"></ion-spinner>
+      </div>
+      }@else { @for (ticket of selectedDayEvents(); track ticket.id) {
+      <a
+        [routerLink]="['/tickets', ticket.id]"
+        class="flex items-center gap-3 bg-white rounded-2xl p-3 border border-surface-dim/40 shadow-sm active:scale-[0.99] transition-transform"
+      >
+        <img
+          [src]="ticket.event?.image_url"
+          [alt]="ticket.title"
+          class="w-16 h-16 rounded-xl object-cover flex-shrink-0"
+        />
+        <div class="flex-1 min-w-0">
+          <p class="text-[11px] font-semibold text-primary/80 mb-0.5">
+            {{ ticket.month }} {{ ticket.day }} · {{ ticket.time }}
+          </p>
+          <p class="text-sm font-bold text-neutral leading-tight line-clamp-1">
+            {{ ticket.title }}
+          </p>
+          <p class="text-xs text-neutral/50 mt-0.5 line-clamp-1">
+            📍 {{ ticket.location }}
+          </p>
+        </div>
+      </a>
+      } }
+    </section>
+  </main>
+</ion-content>

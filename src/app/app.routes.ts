@@ -94,4 +94,8 @@ export const routes: Routes = [
       },
     ],
   },
+  {
+    path: 'agenda',
+    loadComponent: () => import('./modules/agenda/pages/agenda/agenda.page').then( m => m.AgendaPage)
+  },
 ];
