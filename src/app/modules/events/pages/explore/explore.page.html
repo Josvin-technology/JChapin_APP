@@ -1,0 +1,123 @@
+<ion-content [fullscreen]="false" [scrollY]="true">
+  <main class="w-full max-w-md mx-auto flex flex-col gap-5 px-4"
+    style="padding-top: calc(1.25rem + env(safe-area-inset-top, 0px));
+           padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px))">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+      <div>
+        <h1 class="text-2xl font-black text-neutral">Eventos</h1>
+        <p class="text-xs text-neutral/55 font-medium mt-0.5">
+          {{ filteredEvents().length }} evento{{ filteredEvents().length !== 1 ? 's' : '' }} disponibles
+        </p>
+      </div>
+      <a routerLink="/events-create"
+        class="w-11 h-11 rounded-full bg-primary flex items-center justify-center shadow-md active:scale-95 transition-transform">
+        <ion-icon name="add-outline" class="text-2xl text-white"></ion-icon>
+      </a>
+    </div>
+
+    <!-- Search + Filter -->
+    <div class="flex gap-2 items-center">
+      <div class="relative flex-1">
+        <ion-icon name="search-outline"
+          class="absolute left-3.5 top-1/2 -translate-y-1/2 text-lg text-outline pointer-events-none z-10"></ion-icon>
+        <input
+          type="text"
+          placeholder="Buscar..."
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+          class="w-full pl-10 pr-4 py-3 rounded-2xl border border-surface-dim/60 bg-white text-sm text-neutral placeholder:text-outline/60 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
+        />
+      </div>
+      <button class="w-12 h-12 rounded-2xl border border-surface-dim/60 bg-white flex items-center justify-center flex-shrink-0 shadow-sm">
+        <ion-icon name="options-outline" class="text-xl text-neutral"></ion-icon>
+      </button>
+    </div>
+
+    <!-- Category chips -->
+    <div class="flex gap-2 overflow-x-auto no-scrollbar -mx-4 px-4 pb-1">
+      @for (cat of categories; track cat.label) {
+        <button
+          type="button"
+          (click)="selectCategory(cat.value)"
+          class="flex-shrink-0 flex items-center gap-1.5 px-4 py-2.5 rounded-full border text-xs font-semibold transition-all active:scale-95 whitespace-nowrap"
+          [class.bg-primary]="activeCategory() === cat.value"
+          [class.text-white]="activeCategory() === cat.value"
+          [class.border-primary]="activeCategory() === cat.value"
+          [class.shadow-md]="activeCategory() === cat.value"
+          [class.bg-white]="activeCategory() !== cat.value"
+          [class.text-neutral]="activeCategory() !== cat.value"
+          [class.border-surface-dim]="activeCategory() !== cat.value"
+        >
+          <ion-icon [name]="cat.icon" class="text-base flex-shrink-0"
+            [class.text-white]="activeCategory() === cat.value"
+            [class.text-primary]="activeCategory() !== cat.value">
+          </ion-icon>
+          {{ cat.label }}
+        </button>
+      }
+    </div>
+
+    <!-- Events list -->
+    @if (filteredEvents().length === 0) {
+      <div class="flex flex-col items-center justify-center py-16 gap-3 text-center">
+        <span class="text-5xl">🔍</span>
+        <p class="font-bold text-neutral">Sin resultados</p>
+        <p class="text-sm text-neutral/55">Prueba con otro término o categoría</p>
+      </div>
+    }
+
+    @for (event of filteredEvents(); track event.id) {
+      <a [routerLink]="['/events', event.id]"
+        class="bg-white rounded-3xl overflow-hidden border border-surface-dim/40 shadow-sm active:scale-[0.99] transition-transform block">
+
+        <!-- Image -->
+        <div class="relative h-52">
+          <img [src]="event.image" [alt]="event.title" class="w-full h-full object-cover" />
+
+          <!-- Gradient bottom -->
+          <div class="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
+
+          <!-- Date badge -->
+          <div class="absolute top-3 left-3 bg-white rounded-xl px-2.5 py-1.5 text-center min-w-[48px] shadow-sm">
+            <p class="text-[9px] font-bold text-neutral/55 uppercase leading-none">{{ event.month }}</p>
+            <p class="text-[22px] font-black text-neutral leading-none">{{ event.day }}</p>
+          </div>
+
+          <!-- Price badge -->
+          <div class="absolute top-3 right-3 bg-white/95 backdrop-blur-sm text-primary text-xs font-black px-3 py-1.5 rounded-full shadow-sm">
+            {{ event.price }}
+          </div>
+
+          <!-- Category badge -->
+          <div class="absolute bottom-3 left-3 bg-primary/90 backdrop-blur-sm text-white text-[11px] font-bold px-2.5 py-1 rounded-full">
+            {{ event.category }}
+          </div>
+        </div>
+
+        <!-- Content -->
+        <div class="p-4 flex flex-col gap-2.5">
+          <h3 class="text-base font-black text-neutral leading-tight">{{ event.title }}</h3>
+
+          <div class="flex flex-col gap-1.5">
+            <div class="flex items-center gap-2 text-xs text-neutral/60">
+              <ion-icon name="time-outline" class="text-sm text-primary flex-shrink-0"></ion-icon>
+              <span>{{ event.time }}</span>
+            </div>
+            <div class="flex items-center gap-2 text-xs text-neutral/60">
+              <ion-icon name="location-outline" class="text-sm text-primary flex-shrink-0"></ion-icon>
+              <span>{{ event.location }}</span>
+            </div>
+            @if (event.attendees) {
+              <div class="flex items-center gap-2 text-xs text-neutral/60">
+                <ion-icon name="people-outline" class="text-sm text-primary flex-shrink-0"></ion-icon>
+                <span>{{ formatAttendees(event) }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      </a>
+    }
+  </main>
+</ion-content>

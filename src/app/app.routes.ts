@@ -36,10 +36,20 @@ export const routes: Routes = [
             (m) => m.HomePage,
           ),
       },
+      {
+        path: 'explore',
+        loadComponent: () =>
+          import('./modules/events/pages/explore/explore.page').then(
+            (m) => m.ExplorePage,
+          ),
+      },
     ],
   },
   {
     path: 'event-detail',
-    loadComponent: () => import('./modules/events/pages/event-detail/event-detail.page').then( m => m.EventDetailPage)
+    loadComponent: () =>
+      import('./modules/events/pages/event-detail/event-detail.page').then(
+        (m) => m.EventDetailPage,
+      ),
   },
 ];
