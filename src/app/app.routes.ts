@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { permissionGuard } from './core/guards/permission-guard';
+import { authGuard } from './core/guards/auth-guard';
 
 export const routes: Routes = [
   {
@@ -86,16 +87,27 @@ export const routes: Routes = [
       {
         path: 'add-review/:eventId',
         canActivate: [permissionGuard],
-        data: { permission: 'events.review'},
+        data: { permission: 'events.review' },
         loadComponent: () =>
           import('./modules/events/pages/review/review.page').then(
             (m) => m.ReviewPage,
           ),
       },
+      {
+        path: 'agenda',
+        loadComponent: () =>
+          import('./modules/agenda/pages/agenda/agenda.page').then(
+            (m) => m.AgendaPage,
+          ),
+      },
+      {
+        path: 'profile',
+        canActivate:[authGuard],
+        loadComponent: () =>
+          import('./modules/profile/pages/profile/profile.page').then(
+            (m) => m.ProfilePage,
+          ),
+      },
     ],
-  },
-  {
-    path: 'agenda',
-    loadComponent: () => import('./modules/agenda/pages/agenda/agenda.page').then( m => m.AgendaPage)
   },
 ];

@@ -1,0 +1,190 @@
+<ion-content [fullscreen]="true" [scrollY]="true">
+  <main
+    class="mx-auto flex w-full max-w-md flex-col gap-5 px-4"
+    style="
+      padding-top: calc(1rem + env(safe-area-inset-top, 0px));
+      padding-bottom: calc(6rem + env(safe-area-inset-bottom, 0px));
+    "
+  >
+    <section class="profile-hero">
+      <div class="relative">
+        <img
+          [src]="user().avatar"
+          [alt]="user().name"
+          class="h-24 w-24 !rounded-full border-4 border-white object-cover shadow-lg"
+        />
+
+        <input
+          type="file"
+          accept="image/*"
+          #avatarInput
+          class="hidden"
+          (change)="onAvatarSelected($event)"
+        />
+
+        <button
+          type="button"
+          (click)="avatarInput.click()"
+          [disabled]="uploadingAvatar()"
+          class="absolute -bottom-1 -right-1 grid h-10 w-10 place-items-center !rounded-full bg-primary text-white shadow-lg"
+        >
+          @if (uploadingAvatar()) {
+          <ion-spinner name="crescent" class="text-lg"></ion-spinner>
+          } @else {
+          <ion-icon name="create-outline" class="text-lg"></ion-icon>
+          }
+        </button>
+      </div>
+      <h1 class="mt-5 text-2xl font-bold text-neutral">{{ user().name }}</h1>
+      <p class="email-pill">{{ user().email }}</p>
+    </section>
+
+    <!-- componente de menú -->
+    <app-profile-role-switcher
+      *appCan="'roles.switch'"
+      [(selectedRole)]="selectedRole"
+    />
+
+    <!-- Opciones Segun el Rol Seleccionado -->
+    @if (selectedRole === 'user') {
+    <section class="profile-summary">
+      <a routerLink="/events" class="summary-item">
+        <span>
+          <strong>3</strong>
+          <small>Guardados</small>
+        </span>
+        <ion-icon name="heart-outline"></ion-icon>
+      </a>
+
+      <a routerLink="/tickets" class="summary-item">
+        <span>
+          <strong>2</strong>
+          <small>Tickets</small>
+        </span>
+        <ion-icon name="ticket-outline"></ion-icon>
+      </a>
+
+      <a routerLink="/agenda" class="summary-item">
+        <span>
+          <strong>2</strong>
+          <small>Agenda</small>
+        </span>
+        <ion-icon name="ticket-outline"></ion-icon>
+      </a>
+    </section>
+
+    <a routerLink="/tickets" class="featured-link">
+      <span
+        class="grid h-12 w-12 place-items-center rounded-full bg-primary text-white"
+      >
+        <ion-icon name="tickets-outline" class="text-xl"></ion-icon>
+      </span>
+      <span class="min-w-0 flex-1">
+        <strong class="block text-sm text-neutral">Mis eventos</strong>
+        <span class="text-xs text-neutral/60"
+          >Eventos a los que te registraste</span
+        >
+      </span>
+      <div
+        class="grid h-8 w-8 place-items-center rounded-full bg-surface text-xs font-bold text-primary"
+      >
+        2
+      </div>
+    </a>
+
+    } @if (selectedRole === 'organizer') {
+    <section
+      class="rounded-[1.35rem] border border-surface-dim/70 bg-white p-5 shadow-sm"
+    >
+      <div class="mb-4 flex items-center justify-between">
+        <h2 class="text-base font-bold text-neutral">Panel de organizador</h2>
+        <span class="text-xs font-bold uppercase text-primary">Activo</span>
+      </div>
+
+      <div class="grid grid-cols-3 gap-2">
+        @for (metric of organizerMetrics; track metric.label) {
+        <div class="rounded-2xl bg-surface px-2 py-3 text-center">
+          <strong class="block text-xl leading-none text-neutral"
+            >{{ metric.value }}</strong
+          >
+          <span class="text-[11px] text-neutral/70">{{ metric.label }}</span>
+        </div>
+        }
+      </div>
+    </section>
+
+    <div class="grid grid-cols-2 gap-3">
+      <a
+        [routerLink]="['/events-create']"
+        class="flex h-14 items-center justify-center gap-2 rounded-[1.35rem] bg-primary px-3 text-sm font-bold text-white shadow-sm"
+      >
+        <ion-icon name="add-outline" class="text-lg"></ion-icon>
+        Crear evento
+      </a>
+      <a
+        [routerLink]="['/events-mine']"
+        class="flex h-14 items-center justify-center gap-2 rounded-[1.35rem] border border-surface-dim/70 bg-white px-3 text-sm font-bold text-neutral shadow-sm"
+      >
+        <ion-icon
+          name="stats-chart-outline"
+          class="text-lg text-primary"
+        ></ion-icon>
+        Mis eventos
+      </a>
+    </div>
+    } @if (selectedRole === 'approver') {
+    <a
+      [routerLink]="['/approvals']"
+      class="flex items-center gap-4 rounded-[1.35rem] border border-surface-dim/70 bg-white p-5 shadow-sm"
+    >
+      <span
+        class="grid h-12 w-12 place-items-center rounded-full bg-primary/10 text-primary"
+      >
+        <ion-icon name="clipboard-outline" class="text-2xl"></ion-icon>
+      </span>
+      <span class="min-w-0 flex-1">
+        <strong class="block text-sm text-neutral"
+          >Bandeja de aprobaciones</strong
+        >
+        <span class="text-xs text-neutral/65">2 solicitudes pendientes</span>
+      </span>
+      <span
+        class="grid h-8 w-8 place-items-center rounded-full bg-red-500 text-sm font-bold text-white"
+        >2</span
+      >
+    </a>
+
+    <section
+      class="rounded-[1.35rem] border border-surface-dim/70 bg-white p-5 shadow-sm"
+    >
+      <h2 class="mb-4 text-base font-bold text-neutral">Actividad municipal</h2>
+      <div class="grid grid-cols-3 gap-2">
+        @for (metric of approverMetrics; track metric.label) {
+        <div class="rounded-2xl bg-surface px-2 py-3 text-center">
+          <strong class="block text-xl leading-none text-neutral"
+            >{{ metric.value }}</strong
+          >
+          <span class="text-[11px] text-neutral/70">{{ metric.label }}</span>
+        </div>
+        }
+      </div>
+    </section>
+
+    }
+
+    <section class="flex flex-col gap-3">
+      @for(item of menuActions; track item.label){
+      <app-profile-menu-item [item]="item" />
+      }
+    </section>
+
+    <app-profile-menu-item
+      [item]="{
+      label: 'Cerrar sesión',
+      icon: 'exit-outline',
+      danger: true,
+      action: logout.bind(this)
+      }"
+    />
+  </main>
+</ion-content>
