@@ -102,20 +102,37 @@ export const routes: Routes = [
       },
       {
         path: 'profile',
-        canActivate:[authGuard],
+        canActivate: [authGuard],
         loadComponent: () =>
           import('./modules/profile/pages/profile/profile.page').then(
             (m) => m.ProfilePage,
           ),
       },
+      {
+        path: 'approvals',
+        canActivate: [permissionGuard],
+        data: { permission: 'approvals.review'},
+        loadComponent: () =>
+          import('./modules/approvals/pages/approvals/approvals.page').then(
+            (m) => m.ApprovalsPage,
+          ),
+      },
+      {
+        path: 'events-mine/:eventId/documents',
+        canActivate: [permissionGuard],
+        data: { permission: 'events.manage' },
+        loadComponent: () =>
+          import('./modules/approvals/pages/event-documents/event-documents.page').then(
+            (m) => m.EventDocumentsPage,
+          ),
+      },
     ],
   },
   {
-    path: 'approvals',
-    loadComponent: () => import('./modules/approvals/pages/approvals/approvals.page').then( m => m.ApprovalsPage)
-  },
-  {
-    path: 'event-documents',
-    loadComponent: () => import('./modules/approvals/pages/event-documents/event-documents.page').then( m => m.EventDocumentsPage)
+    path: 'verify-code',
+    loadComponent: () =>
+      import('./modules/auth/pages/verify-code/verify-code.page').then(
+        (m) => m.VerifyCodePage,
+      ),
   },
 ];
