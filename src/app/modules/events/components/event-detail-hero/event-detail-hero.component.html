@@ -1,0 +1,53 @@
+<section class="relative -mx-4">
+  <div class="relative h-[340px] overflow-hidden bg-surface-dim">
+    <img
+      [src]="event.image"
+      [alt]="event.title"
+      class="h-full w-full object-cover"
+    />
+    <div
+      class="absolute inset-x-0 bottom-0 h-36 bg-gradient-to-t from-surface via-surface/80 to-transparent"
+    ></div>
+  </div>
+
+  <div class="absolute left-5 right-5 top-5 flex items-center justify-between">
+    <button
+      type="button"
+      (click)="goBack()"
+      class="grid h-11 w-11 place-items-center !rounded-full bg-white/95 text-neutral shadow-sm"
+    >
+      <ion-icon [icon]="backIcon" class="text-2xl"></ion-icon>
+    </button>
+
+    <div class="flex gap-3">
+      <button
+        type="button"
+        class="grid h-11 w-11 place-items-center !rounded-full bg-white/95 text-neutral shadow-sm"
+      >
+        <ion-icon [icon]="heartIcon" class="text-xl"></ion-icon>
+      </button>
+      <button
+        type="button"
+        class="grid h-11 w-11 place-items-center !rounded-full bg-white/95 text-neutral shadow-sm"
+      >
+        <ion-icon [icon]="shareIcon" class="text-xl"></ion-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="relative -mt-20 px-4">
+    <div class="mb-4 flex flex-wrap gap-2">
+      @for (tag of event.tags; track tag) {
+        <span
+          class="rounded-full bg-white/90 px-3 py-1 text-xs font-medium text-primary shadow-sm"
+        >
+          {{ tag }}
+        </span>
+      }
+    </div>
+
+    <h1 class="text-[26px] font-black leading-tight text-neutral">
+      {{ event.title }}
+    </h1>
+  </div>
+</section>

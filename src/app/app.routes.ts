@@ -76,13 +76,22 @@ export const routes: Routes = [
             (m) => m.MyEventsPage,
           ),
       },
+      {
+        path: 'events/:id',
+        loadComponent: () =>
+          import('./modules/events/pages/event-detail/event-detail.page').then(
+            (m) => m.EventDetailPage,
+          ),
+      },
+      {
+        path: 'add-review/:eventId',
+        canActivate: [permissionGuard],
+        data: { permission: 'events.review'},
+        loadComponent: () =>
+          import('./modules/events/pages/review/review.page').then(
+            (m) => m.ReviewPage,
+          ),
+      },
     ],
-  },
-  {
-    path: 'event-detail',
-    loadComponent: () =>
-      import('./modules/events/pages/event-detail/event-detail.page').then(
-        (m) => m.EventDetailPage,
-      ),
   },
 ];

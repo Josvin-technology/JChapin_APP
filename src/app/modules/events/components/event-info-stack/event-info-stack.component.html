@@ -1,0 +1,86 @@
+<section class="flex flex-col gap-4">
+  <article
+    class="flex items-center justify-between rounded-3xl border border-surface-dim/60 bg-white p-4 shadow-sm"
+  >
+    <div class="flex items-center gap-3">
+      <img
+        [src]="event.organizer?.avatar"
+        [alt]="event.organizer?.name"
+        class="h-12 w-12 rounded-full object-cover"
+      />
+      <div>
+        <p class="text-xs text-neutral/60">Organizado por</p>
+        <h2 class="text-sm font-bold text-neutral">
+          {{ event.organizer?.name }}
+        </h2>
+      </div>
+    </div>
+    <button
+      class="rounded-full border border-surface-dim px-4 py-2 text-sm font-semibold text-neutral shadow-sm"
+    >
+      Seguir
+    </button>
+  </article>
+
+  <article
+    class="rounded-3xl border border-surface-dim/60 bg-white p-4 shadow-sm"
+  >
+    <div class="flex items-center gap-4">
+      <div
+        class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary/10 text-primary"
+      >
+        <ion-icon [icon]="calendarIcon" class="text-xl"></ion-icon>
+      </div>
+      <div>
+        <h3 class="font-bold text-neutral">{{ event.date }}</h3>
+        <p class="text-sm text-neutral/60">{{ event.time }}</p>
+      </div>
+    </div>
+  </article>
+
+  <article
+    class="rounded-3xl border border-surface-dim/60 bg-white p-4 shadow-sm"
+  >
+    <div class="flex items-center justify-between gap-3">
+      <div class="flex items-center gap-4">
+        <div
+          class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary/10 text-primary"
+        >
+          <ion-icon [icon]="locationIcon" class="text-xl"></ion-icon>
+        </div>
+        <div>
+          <h3 class="font-bold text-neutral">{{ event.location }}</h3>
+          <p class="text-sm text-neutral/60">{{ event.city }}</p>
+        </div>
+      </div>
+      <button class="shrink-0 text-xs font-bold text-primary">Ver mapa</button>
+    </div>
+  </article>
+
+  <article
+    class="rounded-3xl border border-surface-dim/60 bg-white p-4 shadow-sm"
+  >
+    <div class="mb-3 flex items-center gap-4">
+      <div
+        class="grid h-11 w-11 shrink-0 place-items-center rounded-full bg-primary/10 text-primary"
+      >
+        <ion-icon [icon]="peopleIcon" class="text-xl"></ion-icon>
+      </div>
+      <div>
+        <h3 class="font-bold text-neutral">
+          {{ event.attendees?.current }} de
+          {{ event.attendees?.capacity }} asistentes
+        </h3>
+        <p class="text-sm text-neutral/60">
+          {{ attendeePercent }}% de capacidad
+        </p>
+      </div>
+    </div>
+    <div class="h-1.5 overflow-hidden rounded-full bg-surface-dim/60">
+      <div
+        class="h-full rounded-full bg-primary"
+        [style.width.%]="attendeePercent"
+      ></div>
+    </div>
+  </article>
+</section>

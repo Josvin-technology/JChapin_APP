@@ -1,0 +1,32 @@
+<section>
+  <div class="mb-3 flex items-center justify-between">
+    <h2 class="text-lg font-black text-neutral">Reseñas</h2>
+    <a
+      *appCan="'events.review'"
+      [routerLink]="['/add-review', event.id]"
+      class="text-xs font-bold text-primary"
+    >
+      Dejar reseña
+    </a>
+  </div>
+
+  <article
+    class="rounded-3xl border border-surface-dim/70 bg-white p-4 shadow-sm"
+  >
+    <div class="flex items-center gap-2">
+      <div class="flex text-amber-400">
+        @for (item of [1, 2, 3, 4, 5]; track item) {
+          <ion-icon [icon]="starIcon" class="text-lg"></ion-icon>
+        }
+      </div>
+      <span class="font-black text-neutral">{{ event.reviews?.rating }}</span>
+      <span class="text-xs text-neutral/60"
+        >· {{ event.reviews?.total }} reseñas</span
+      >
+    </div>
+    <p class="mt-3 flex gap-2 text-sm text-neutral/65">
+      <ion-icon [icon]="commentIcon" class="mt-0.5 shrink-0"></ion-icon>
+      "{{ event.reviews?.quote }}"
+    </p>
+  </article>
+</section>
