@@ -7,6 +7,7 @@ import {
   Token,
 } from '@capacitor/push-notifications';
 import { Capacitor } from '@capacitor/core';
+import { Device } from '@capacitor/device';
 
 @Injectable({
   providedIn: 'root',
@@ -51,7 +52,7 @@ export class PushNotificationsService {
   private registerListeners() {
     PushNotifications.addListener('registration', (token: Token) => {
       this._token.set(token.value);
-      console.log('Push registration success, token: ' + token.value);
+      void this.saveToken(token.value, Capacitor.getPlatform());
     });
 
     PushNotifications.addListener('registrationError', (error) => {
@@ -63,14 +64,43 @@ export class PushNotificationsService {
       (notification) => {
         this._lastNotification.set(notification);
         console.log('Push received: ' + JSON.stringify(notification));
-      },
+      }
     );
 
     PushNotifications.addListener(
       'pushNotificationActionPerformed',
       (notification) => {
         console.log('Push action performed: ' + JSON.stringify(notification));
-      },
+      }
     );
+  }
+
+  //Guardar y actualizar el token de notificación push en la base de datos.
+  private async saveToken(token: string, platform: string): Promise<void> {
+    const userId = this.auth.user()?.id;
+
+    if (!userId) {
+      console.error('Push: Sin Sesion no almacena el token');
+      return;
+    }
+
+    const info = await Device.getInfo();
+    // Concatena modelo, nombre y SO + versión en un solo string.
+    const data = `${info.model} | ${info.name ?? 'sin nombre'} | ${
+      info.operatingSystem
+    } ${info.osVersion}`;
+
+    const { error } = await this.supabaseClient
+      .from('device_tokens')
+      .upsert(
+        { profile_id: userId, token, platform, data },
+        { onConflict: 'token' }
+      );
+    if (error) {
+      console.error(
+        'Push: Error al guardar el token en la base de datos',
+        error
+      );
+    }
   }
 }
