@@ -1,4 +1,4 @@
-import { inject, Injectable, signal } from '@angular/core';
+import { effect, inject, Injectable, signal } from '@angular/core';
 import { AuthService } from './auth-service';
 import { SupabaseService } from './supabase-service';
 import {
@@ -8,6 +8,7 @@ import {
 } from '@capacitor/push-notifications';
 import { Capacitor } from '@capacitor/core';
 import { Device } from '@capacitor/device';
+import { retry } from 'rxjs';
 
 @Injectable({
   providedIn: 'root',
@@ -24,6 +25,15 @@ export class PushNotificationsService {
   token = this._token.asReadonly();
   lastNotification = this._lastNotification.asReadonly();
   permissionStatus = this._permissionStatus.asReadonly();
+
+  constructor() {
+    effect (() =>{
+      const userId = this.auth.user()?.id;
+      const token = this._token();
+      if (!userId || !token) return;
+      void this.saveToken(token,Capacitor.getPlatform());
+    });
+  }
 
   //Inicializa el servicio de notificaciones push y solicita el permiso al usuario.|
   async init() {
@@ -77,30 +87,31 @@ export class PushNotificationsService {
 
   //Guardar y actualizar el token de notificación push en la base de datos.
   private async saveToken(token: string, platform: string): Promise<void> {
-    const userId = this.auth.user()?.id;
+   const userId = this.auth.user()?.id;
 
-    if (!userId) {
-      console.error('Push: Sin Sesion no almacena el token');
-      return;
-    }
 
-    const info = await Device.getInfo();
-    // Concatena modelo, nombre y SO + versión en un solo string.
-    const data = `${info.model} | ${info.name ?? 'sin nombre'} | ${
-      info.operatingSystem
-    } ${info.osVersion}`;
+   if (!userId) {
+     console.error('Push: Sin Sesion no almacena el token');
+     return;
+   }
 
-    const { error } = await this.supabaseClient
-      .from('device_tokens')
-      .upsert(
-        { profile_id: userId, token, platform, data },
-        { onConflict: 'token' }
-      );
-    if (error) {
-      console.error(
-        'Push: Error al guardar el token en la base de datos',
-        error
-      );
-    }
-  }
+
+   const info = await Device.getInfo();
+   // Concatena modelo, nombre y SO + versión en un solo string.
+   const data = `${info.model} | ${info.name ?? 'sin nombre'} | ${info.operatingSystem} ${info.osVersion}`;
+
+
+   const { error } = await this.supabaseClient
+     .from('device_tokens')
+     .upsert(
+       { profile_id: userId, token, platform, data },
+       { onConflict: 'token' }
+     );
+   if (error) {
+     console.error(
+       'Push: Error al guardar el token en la base de datos',
+       error
+     );
+   }
+ }
 }

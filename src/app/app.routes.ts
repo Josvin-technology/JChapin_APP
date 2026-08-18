@@ -60,7 +60,7 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'creates-event',
+        path: 'events-create',
         canActivate: [permissionGuard],
         data: { permission: 'events.manage' },
         loadComponent: () =>
