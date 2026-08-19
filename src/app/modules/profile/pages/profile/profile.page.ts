@@ -41,6 +41,7 @@ import { AuthService } from 'src/app/core/services/auth-service';
 import { StorageService } from 'src/app/core/services/storage-service';
 import { PermissionService } from 'src/app/core/services/permission-service';
 import { CanDirective } from 'src/app/core/directives/can-directive';
+import { PushNotificationsService } from 'src/app/core/services/push-notifications-service';
 
 @Component({
   selector: 'app-profile',
@@ -64,6 +65,7 @@ export class ProfilePage implements OnInit {
   private toastController = inject(ToastController);
   private storage = inject(StorageService);
   private permission = inject(PermissionService);
+  private pushService = inject (PushNotificationsService);
 
   canRoleSwitchRles = this.permission.canRoleSwitch;
 
@@ -139,8 +141,9 @@ export class ProfilePage implements OnInit {
     return [...USER_MENU_ACTION, ...BASE_MENU_ACTIONS];
   }
 
-  logout() {
-    this.auth.signOut();
+  async logout() {
+    await this.pushService.deleteToken();
+    await this.auth.signOut();
   }
 
   async onAvatarSelected(event: Event) {

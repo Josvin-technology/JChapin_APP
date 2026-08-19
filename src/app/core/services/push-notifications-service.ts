@@ -27,11 +27,11 @@ export class PushNotificationsService {
   permissionStatus = this._permissionStatus.asReadonly();
 
   constructor() {
-    effect (() =>{
+    effect(() => {
       const userId = this.auth.user()?.id;
       const token = this._token();
       if (!userId || !token) return;
-      void this.saveToken(token,Capacitor.getPlatform());
+      void this.saveToken(token, Capacitor.getPlatform());
     });
   }
 
@@ -87,31 +87,50 @@ export class PushNotificationsService {
 
   //Guardar y actualizar el token de notificación push en la base de datos.
   private async saveToken(token: string, platform: string): Promise<void> {
-   const userId = this.auth.user()?.id;
+    const userId = this.auth.user()?.id;
 
+    if (!userId) {
+      console.error('Push: Sin Sesion no almacena el token');
+      return;
+    }
 
-   if (!userId) {
-     console.error('Push: Sin Sesion no almacena el token');
-     return;
-   }
+    const info = await Device.getInfo();
+    // Concatena modelo, nombre y SO + versión en un solo string.
+    const data = `${info.model} | ${info.name ?? 'sin nombre'} | ${
+      info.operatingSystem
+    } ${info.osVersion}`;
 
+    const { error } = await this.supabaseClient
+      .from('device_tokens')
+      .upsert(
+        { profile_id: userId, token, platform, data },
+        { onConflict: 'token' }
+      );
+    if (error) {
+      console.error(
+        'Push: Error al guardar el token en la base de datos',
+        error
+      );
+    }
+  }
 
-   const info = await Device.getInfo();
-   // Concatena modelo, nombre y SO + versión en un solo string.
-   const data = `${info.model} | ${info.name ?? 'sin nombre'} | ${info.operatingSystem} ${info.osVersion}`;
+  async deleteToken(): Promise<void> {
+    const token = this._token();
+    if (!token) return;
 
+    const { error } = await this.supabaseClient
+      .from('device_tokens')
+      .delete()
+      .eq('token', token);
+    if (error)
+      console.error(
+        `Push: Error al eliminar el token de la base de datos`,
+        error.message
+      );
+  }
 
-   const { error } = await this.supabaseClient
-     .from('device_tokens')
-     .upsert(
-       { profile_id: userId, token, platform, data },
-       { onConflict: 'token' }
-     );
-   if (error) {
-     console.error(
-       'Push: Error al guardar el token en la base de datos',
-       error
-     );
-   }
- }
+  async removeListeners(): Promise<void> {
+    if (!Capacitor.isNativePlatform()) return;
+    await PushNotifications.removeAllListeners();
+  }
 }
