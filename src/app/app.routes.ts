@@ -16,14 +16,14 @@ export const routes: Routes = [
     path: 'register',
     loadComponent: () =>
       import('./modules/auth/pages/register/register.page').then(
-        (m) => m.RegisterPage,
+        (m) => m.RegisterPage
       ),
   },
   {
     path: '',
     loadComponent: () =>
       import('./layout/main-layout/main-layout.component').then(
-        (m) => m.MainLayoutComponent,
+        (m) => m.MainLayoutComponent
       ),
     children: [
       {
@@ -35,28 +35,28 @@ export const routes: Routes = [
         path: 'events',
         loadComponent: () =>
           import('./modules/events/pages/home/home.page').then(
-            (m) => m.HomePage,
+            (m) => m.HomePage
           ),
       },
       {
         path: 'explore',
         loadComponent: () =>
           import('./modules/events/pages/explore/explore.page').then(
-            (m) => m.ExplorePage,
+            (m) => m.ExplorePage
           ),
       },
       {
         path: 'tickets/:id',
         loadComponent: () =>
-          import('./modules/tickets/pages/ticket-detail/ticket-detail.page').then(
-            (m) => m.TicketDetailPage,
-          ),
+          import(
+            './modules/tickets/pages/ticket-detail/ticket-detail.page'
+          ).then((m) => m.TicketDetailPage),
       },
       {
         path: 'tickets',
         loadComponent: () =>
           import('./modules/tickets/pages/home/home.page').then(
-            (m) => m.HomePage,
+            (m) => m.HomePage
           ),
       },
       {
@@ -65,7 +65,7 @@ export const routes: Routes = [
         data: { permission: 'events.manage' },
         loadComponent: () =>
           import('./modules/events/pages/create-event/create-event.page').then(
-            (m) => m.CreateEventPage,
+            (m) => m.CreateEventPage
           ),
       },
       {
@@ -74,14 +74,14 @@ export const routes: Routes = [
         data: { permission: 'events.manage' },
         loadComponent: () =>
           import('./modules/events/pages/my-events/my-events.page').then(
-            (m) => m.MyEventsPage,
+            (m) => m.MyEventsPage
           ),
       },
       {
         path: 'events/:id',
         loadComponent: () =>
           import('./modules/events/pages/event-detail/event-detail.page').then(
-            (m) => m.EventDetailPage,
+            (m) => m.EventDetailPage
           ),
       },
       {
@@ -90,14 +90,14 @@ export const routes: Routes = [
         data: { permission: 'events.review' },
         loadComponent: () =>
           import('./modules/events/pages/review/review.page').then(
-            (m) => m.ReviewPage,
+            (m) => m.ReviewPage
           ),
       },
       {
         path: 'agenda',
         loadComponent: () =>
           import('./modules/agenda/pages/agenda/agenda.page').then(
-            (m) => m.AgendaPage,
+            (m) => m.AgendaPage
           ),
       },
       {
@@ -105,16 +105,16 @@ export const routes: Routes = [
         canActivate: [authGuard],
         loadComponent: () =>
           import('./modules/profile/pages/profile/profile.page').then(
-            (m) => m.ProfilePage,
+            (m) => m.ProfilePage
           ),
       },
       {
         path: 'approvals',
         canActivate: [permissionGuard],
-        data: { permission: 'approvals.review'},
+        data: { permission: 'approvals.review' },
         loadComponent: () =>
           import('./modules/approvals/pages/approvals/approvals.page').then(
-            (m) => m.ApprovalsPage,
+            (m) => m.ApprovalsPage
           ),
       },
       {
@@ -122,9 +122,17 @@ export const routes: Routes = [
         canActivate: [permissionGuard],
         data: { permission: 'events.manage' },
         loadComponent: () =>
-          import('./modules/approvals/pages/event-documents/event-documents.page').then(
-            (m) => m.EventDocumentsPage,
-          ),
+          import(
+            './modules/approvals/pages/event-documents/event-documents.page'
+          ).then((m) => m.EventDocumentsPage),
+      },
+      {
+        path: 'notifications',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import(
+            './modules/notifications/pages/notifications/notifications.page'
+          ).then((m) => m.NotificationsPage),
       },
     ],
   },
@@ -132,7 +140,7 @@ export const routes: Routes = [
     path: 'verify-code',
     loadComponent: () =>
       import('./modules/auth/pages/verify-code/verify-code.page').then(
-        (m) => m.VerifyCodePage,
+        (m) => m.VerifyCodePage
       ),
   },
 ];

@@ -1,0 +1,100 @@
+<ion-content [fullscreen]="false" [scrollY]="true">
+ <main class="w-full max-w-md mx-auto px-4 flex flex-col gap-4"
+   style="padding-top: calc(1.25rem + env(safe-area-inset-top, 0px));
+          padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px))">
+
+
+   <!-- Header -->
+   <div class="flex items-center gap-3">
+     <button (click)="goBack()"
+       class="w-9 h-9 rounded-full flex items-center justify-center bg-white border border-surface-dim/40 shadow-sm">
+       <ion-icon name="chevron-back-outline" class="text-lg text-neutral"></ion-icon>
+     </button>
+     <div class="flex-1 min-w-0">
+       <h1 class="text-2xl font-black text-neutral leading-tight">Notificaciones</h1>
+       <p class="text-xs text-neutral/50">
+         @if (unreadCount() > 0) {
+           {{ unreadCount() }} sin leer
+         } @else {
+           Estás al día
+         }
+       </p>
+     </div>
+     @if (unreadCount() > 0) {
+       <button (click)="markAllAsRead()"
+         class="h-9 px-3 rounded-full flex items-center gap-1 bg-primary/10 text-primary text-xs font-bold">
+         <ion-icon name="checkmark-done-outline" class="text-base"></ion-icon>
+         Marcar todas
+       </button>
+     }
+   </div>
+
+
+   <!-- Cargando -->
+   @if (loading() && items().length === 0) {
+     <div class="flex justify-center py-16">
+       <ion-spinner name="crescent" class="text-primary"></ion-spinner>
+     </div>
+   }
+
+
+   <!-- Vacío -->
+   @else if (items().length === 0) {
+     <div class="flex flex-col items-center justify-center text-center py-16 gap-3">
+       <div class="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
+         <ion-icon name="notifications-outline" class="text-3xl text-primary"></ion-icon>
+       </div>
+       <p class="text-neutral/60 text-sm">Todavía no tienes notificaciones</p>
+     </div>
+   }
+
+
+   <!-- Lista -->
+   @else {
+     <ul class="flex flex-col gap-2">
+       @for (n of items(); track n.id) {
+         <li>
+           <button (click)="openNotification(n)"
+             class="w-full text-left flex items-start gap-3 p-3 rounded-2xl border transition-colors"
+             [class.bg-white]="n.readAt"
+             [class.border-surface-dim/40]="n.readAt"
+             [class.bg-primary/5]="!n.readAt"
+             [class.border-primary/20]="!n.readAt">
+
+
+             <!-- Ícono por tipo -->
+             <div class="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+               [class.bg-primary/10]="!n.readAt"
+               [class.bg-neutral/5]="n.readAt">
+               <ion-icon [name]="iconFor(n.type)"
+                 class="text-xl"
+                 [class.text-primary]="!n.readAt"
+                 [class.text-neutral/40]="n.readAt"></ion-icon>
+             </div>
+
+
+             <!-- Texto -->
+             <div class="flex-1 min-w-0">
+               <div class="flex items-center gap-2">
+                 <p class="flex-1 text-sm font-bold text-neutral truncate">{{ n.title }}</p>
+                 @if (!n.readAt) {
+                   <span class="w-2 h-2 rounded-full bg-primary shrink-0"></span>
+                 }
+               </div>
+               <p class="text-xs text-neutral/60 line-clamp-2">{{ n.body }}</p>
+               <p class="text-[10px] text-neutral/40 mt-1">{{ relativeTime(n.createdAt) }}</p>
+             </div>
+           </button>
+         </li>
+       }
+     </ul>
+   }
+
+
+ </main>
+</ion-content>
+
+
+
+
+
