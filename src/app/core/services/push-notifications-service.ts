@@ -5,10 +5,15 @@ import {
   PushNotifications,
   PushNotificationSchema,
   Token,
+  ActionPerformed,
 } from '@capacitor/push-notifications';
 import { Capacitor } from '@capacitor/core';
 import { Device } from '@capacitor/device';
 import { retry } from 'rxjs';
+import { Router } from '@angular/router';
+import { ToastController } from '@ionic/angular/standalone';
+import { NotificationsService } from './notifications-service';
+import { resolveNotificationRoute } from '../utils/notifications-route';
 
 @Injectable({
   providedIn: 'root',
@@ -16,6 +21,9 @@ import { retry } from 'rxjs';
 export class PushNotificationsService {
   private auth = inject(AuthService);
   private supabaseClient = inject(SupabaseService).client;
+  private router = inject(Router);
+  private toastController = inject(ToastController);
+  private notifications = inject(NotificationsService);
 
   private _token = signal<string | null>(null);
   private _lastNotification = signal<PushNotificationSchema | null>(null);
@@ -71,16 +79,18 @@ export class PushNotificationsService {
 
     PushNotifications.addListener(
       'pushNotificationReceived',
-      (notification) => {
+      (notification: PushNotificationSchema) => {
         this._lastNotification.set(notification);
-        console.log('Push received: ' + JSON.stringify(notification));
+        void this.showForegroundToast(notification);
+        void this.notifications.loadNotifications();
       }
     );
 
     PushNotifications.addListener(
       'pushNotificationActionPerformed',
-      (notification) => {
-        console.log('Push action performed: ' + JSON.stringify(notification));
+      (action: ActionPerformed) => {
+        const data = action.notification.data ?? {};
+        this.handleNotificationTap(data);
       }
     );
   }
@@ -132,5 +142,35 @@ export class PushNotificationsService {
   async removeListeners(): Promise<void> {
     if (!Capacitor.isNativePlatform()) return;
     await PushNotifications.removeAllListeners();
+  }
+
+  private async showForegroundToast(
+    notification: PushNotificationSchema
+  ): Promise<void> {
+    const data = notification.data ?? {};
+    const toast = await this.toastController.create({
+      header: notification.title ?? 'Notificación',
+      message: notification.body ?? '',
+      duration: 3000,
+      position: 'top',
+      buttons: [
+        {
+          text: 'Ver',
+          handler: () => this.handleNotificationTap(data),
+        },
+        {
+          text: 'Cancelar',
+          role: 'cancel',
+        },
+      ],
+    });
+    await toast.present();
+  }
+
+  private handleNotificationTap(data: Record<string, any>): void {
+    const route = resolveNotificationRoute(data['type'], data['eventId']);
+    if (route) {
+      void this.router.navigateByUrl(route);
+    }
   }
 }
