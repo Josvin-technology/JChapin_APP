@@ -134,6 +134,24 @@ export const routes: Routes = [
             './modules/notifications/pages/notifications/notifications.page'
           ).then((m) => m.NotificationsPage),
       },
+      {
+        path: 'admin/users/:id',
+        canActivate: [permissionGuard],
+        data: {permission: 'admin.users'},
+        loadComponent: () =>
+          import(
+            './modules/admin/pages/admin-user-detail/admin-user-detail.page'
+          ).then((m) => m.AdminUserDetailPage),
+      },
+      {
+        path: 'admin/users',
+        canActivate: [permissionGuard],
+        data: {permission: 'admin.users'},
+        loadComponent: () =>
+          import('./modules/admin/pages/users-list/users-list.page').then(
+            (m) => m.UsersListPage
+          ),
+      },
     ],
   },
   {

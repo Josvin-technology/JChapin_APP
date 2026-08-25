@@ -4,4 +4,5 @@ export type AppPermission =
   | 'events.review' //dejar reseña requiere sesion y rol user
   | 'events.manage' // ver los eventos del organizador y requiere session y rol organizer
   | 'approvals.review' // Revisar y aprobar o rechazar eventos requiere sesion y rol approver
-  | 'roles.switch'; // Poder ver el componente de cambio de rol
+  | 'roles.switch' // Poder ver el componente de cambio de rol
+  | 'admin.users'; //Administrar usuarios y roles solo el rol admin puede ver esta pagina.

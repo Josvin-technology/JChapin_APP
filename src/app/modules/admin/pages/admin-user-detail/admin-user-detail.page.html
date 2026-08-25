@@ -1,0 +1,69 @@
+<ion-content [fullscreen]="true" [scrollY]="true">
+  <main
+    class="mx-auto flex w-full max-w-md flex-col gap-5 px-4"
+    style="
+      padding-top: calc(1rem + env(safe-area-inset-top, 0px));
+      padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
+    "
+  >
+    <div class="flex items-center gap-4">
+      <button
+        (click)="goBack()"
+        class="grid h-11 w-11 place-items-center !rounded-full border border-surface-dim/70 bg-white shadow-sm"
+      >
+        <ion-icon name="chevron-back"></ion-icon>
+      </button>
+      <h1 class="text-2xl font-bold text-neutral">Usuario</h1>
+    </div>
+
+    @if (loading()) {
+    <div class="flex justify-center py-12">
+      <ion-spinner name="crescent" class="text-primary"></ion-spinner>
+    </div>
+    } @else if (user(); as u) {
+    <section
+      class="flex flex-col items-center gap-2 rounded-[1.35rem] border border-surface-dim/70 bg-white p-6 shadow-sm"
+    >
+      @if (u.avatarUrl) {
+      <img
+        [src]="u.avatarUrl"
+        [alt]="u.name"
+        class="h-20 w-20 !rounded-full object-cover shadow-sm"
+      />
+      } @else {
+      <ion-icon
+        name="person-circle-outline"
+        class="h-20 w-20 text-neutral/30"
+      ></ion-icon>
+      }
+      <h2 class="mt-2 text-lg font-bold text-neutral">{{ u.name }}</h2>
+      <p class="email-pill">{{ u.email }}</p>
+      @if (createdAtLabel()) {
+      <p class="text-xs text-neutral/45">
+        Miembro desde {{ createdAtLabel() }}
+      </p>
+      }
+    </section>
+
+    <section
+      class="rounded-[1.35rem] border border-surface-dim/70 bg-white p-5 shadow-sm"
+    >
+      <h3 class="mb-3 text-sm font-bold text-neutral">Roles asignados</h3>
+      <div class="flex flex-col divide-y divide-surface-dim/50">
+        @for (item of assignableRoles; track item.role) {
+        <div class="flex items-center justify-between gap-3 py-3">
+          <span class="text-sm font-semibold text-neutral"
+            >{{ item.label }}</span
+          >
+          <ion-toggle
+            [checked]="hasRole(item.role)"
+            [disabled]="isPending(item.role)"
+            (ionChange)="onRoleToggle(item.role, $event.detail.checked)"
+          ></ion-toggle>
+        </div>
+        }
+      </div>
+    </section>
+    }
+  </main>
+</ion-content>

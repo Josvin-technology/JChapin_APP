@@ -27,10 +27,13 @@ import {
   addOutline,
   calendarOutline,
   checkmarkCircleOutline,
+  chevronForwardOutline,
   clipboardOutline,
   createOutline,
   documentTextOutline,
   heartOutline,
+  people,
+  peopleOutline,
   statsChartOutline,
   ticketOutline,
 } from 'ionicons/icons';
@@ -110,6 +113,8 @@ export class ProfilePage implements OnInit {
       checkmarkCircleOutline,
       clipboardOutline,
       documentTextOutline,
+      peopleOutline,
+      chevronForwardOutline,
     });
 
     effect(() => {

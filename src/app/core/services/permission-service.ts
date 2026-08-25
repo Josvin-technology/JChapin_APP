@@ -17,6 +17,7 @@ export class PermissionService {
     'approvals.review': () =>
       this.auth.isLoggedIn() && this.auth.hasRole('approver'),
     'roles.switch': () => this.auth.isLoggedIn() && this.auth.hasRole('admin'),
+    'admin.users': () => this.auth.isLoggedIn() && this.auth.hasRole('admin'),
   };
 
   can(permission: AppPermission): boolean {
@@ -29,4 +30,5 @@ export class PermissionService {
   canManageEvent = computed(() => this.can('events.manage'));
   canApprovalReview = computed(() => this.can('approvals.review'));
   canRoleSwitch = computed(() => this.can('roles.switch'));
+  canAdminUsers = computed(() => this.can('admin.users'));
 }

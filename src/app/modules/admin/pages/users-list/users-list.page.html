@@ -1,0 +1,121 @@
+<ion-content [fullscreen]="true" [scrollY]="true">
+  <main
+    class="mx-auto flex w-full max-w-md flex-col gap-3 px-4"
+    style="
+      padding-top: calc(1rem + env(safe-area-inset-top, 0px));
+      padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
+    "
+  >
+    <!-- Encabezado -->
+    <div class="flex items-center gap-3">
+      <button
+        (click)="goBack()"
+        type="button"
+        class="grid h-10 w-10 shrink-0 place-items-center !rounded-full border border-neutral-200 bg-white text-neutral-700 shadow-sm transition active:scale-95"
+      >
+        <ion-icon name="chevron-back" class="text-lg"></ion-icon>
+      </button>
+      <div>
+        <h1 class="text-xl font-bold tracking-tight text-neutral-800">
+          Usuarios
+        </h1>
+        <p class="text-xs text-neutral-500">
+          Administra los roles de cada usuario
+        </p>
+      </div>
+    </div>
+
+    <!-- Buscador -->
+    <ion-searchbar
+      placeholder="Buscar por nombre o correo"
+      [debounce]="450"
+      (ionInput)="onSearchChange($event)"
+      class="!p-0"
+    ></ion-searchbar>
+
+    <!-- Lista de Usuarios -->
+    @if (loading()) {
+    <div class="flex justify-center py-12">
+      <ion-spinner name="crescent" class="text-primary"></ion-spinner>
+    </div>
+    } @else if (users().length === 0) {
+    <div
+      class="flex flex-col items-center justify-center gap-2 py-16 text-center"
+    >
+      <div
+        class="grid h-12 w-12 place-items-center !rounded-full bg-neutral-100 text-neutral-400"
+      >
+        <ion-icon name="people-outline" class="text-2xl"></ion-icon>
+      </div>
+      <p class="text-sm font-medium text-neutral-500">
+        No se encontraron usuarios
+      </p>
+    </div>
+    } @else {
+    <section class="flex flex-col gap-3">
+      @for (user of users(); track user.id) {
+      <button
+        type="button"
+        (click)="goToUser(user.id)"
+        class="group flex items-center gap-4 !rounded-2xl border border-neutral-200/80 bg-white !p-4 text-left shadow-sm transition active:scale-[0.99] active:bg-neutral-50"
+      >
+        <!-- Avatar / Iniciales -->
+        @if (user.avatarUrl) {
+        <img
+          [src]="user.avatarUrl"
+          [alt]="user.name"
+          class="h-11 w-11 shrink-0 !rounded-full object-cover ring-1 ring-black/5"
+        />
+        } @else {
+        <div
+          class="grid h-11 w-11 shrink-0 place-items-center !rounded-full bg-neutral-100 text-xs font-semibold text-neutral-600 ring-1 ring-black/5"
+        >
+          {{ getUserInitials(user.name) }}
+        </div>
+        }
+
+        <!-- Información -->
+        <div class="min-w-0 flex-1">
+          <p
+            class="truncate text-sm font-semibold text-neutral-800 group-hover:text-primary"
+          >
+            {{ user.name }}
+          </p>
+
+          <p class="truncate text-xs text-neutral-400">{{ user.email }}</p>
+
+          <!-- Badges de Roles -->
+          @if (user.roles && user.roles.length > 0) {
+          <div class="mt-2 flex flex-wrap gap-1">
+            @for (role of user.roles; track role) {
+            <span
+              class="inline-flex items-center !rounded-md px-2 py-0.5 text-[10px] font-medium"
+              [ngClass]="roleBadgeClass(role)"
+            >
+              {{ roleLabel(role) }}
+            </span>
+            }
+          </div>
+          }
+        </div>
+
+        <ion-icon
+          name="chevron-forward-outline"
+          class="shrink-0 text-base text-neutral-300 transition-transform group-active:translate-x-0.5"
+        ></ion-icon>
+      </button>
+      }
+    </section>
+    }
+
+    <ion-infinite-scroll
+      (ionInfinite)="onScrollEnd($event)"
+      [disabled]="!hasMore()"
+    >
+      <ion-infinite-scroll-content
+        loadingSpinner="crescent"
+        loadingText="Cargando más..."
+      ></ion-infinite-scroll-content>
+    </ion-infinite-scroll>
+  </main>
+</ion-content>
