@@ -1,9 +1,9 @@
+import { ReviewService } from 'src/app/core/services/review-service';
 import { inject, Injectable } from '@angular/core';
 import { SupabaseService } from './supabase-service';
 import { AuthService } from './auth-service';
 import { StorageService } from './storage-service';
 import { EventModel, EventStatus } from '../models/event.model';
-import { ReviewService } from './review-service';
 
 const PERMIT_CAPACITY_THRESHOLD = 500;
 const MESES_CORTOS = [
@@ -66,14 +66,17 @@ interface EventRow {
   capacity: number | null;
   organizer: { name: string; avatar_url: string | null } | null;
   event_categories: { categories: { name: string } | null }[] | null;
+  latitude: number | null;
+  longitude: number | null;
 }
 
 // Campos que se piden a Supabase para armar un EventModel (evita traer columnas de más).
 const EVENT_SELECT = `
- id, title, status, description, event_date, event_time, location, city,
- price, price_label, image_url, popular, featured, capacity,
- organizer:profiles!organizer_id ( name, avatar_url ),
- event_categories ( categories ( name ) )
+id, title, status, description, event_date, event_time, location, city,
+latitude, longitude,
+price, price_label, image_url, popular, featured, capacity,
+organizer:profiles!organizer_id ( name, avatar_url ),
+event_categories ( categories ( name ) )
 `;
 
 export interface CreateEventInput {
@@ -147,7 +150,7 @@ export class EventsService {
       const imageUrl = await this.storage.uploadFile(
         'events',
         `${eventId}.${extension}`,
-        input.coverImage,
+        input.coverImage
       );
       // Actualizar la URL de la imagen en la tabla de eventos
       const { error: imgError } = await this.supabaseClient
@@ -190,7 +193,7 @@ export class EventsService {
   }
 
   private async resolveCategoryId(
-    slug: string,
+    slug: string
   ): Promise<{ id: string; requires_permit: boolean }> {
     const { data, error } = await this.supabaseClient
       .from('categories')
@@ -252,6 +255,10 @@ export class EventsService {
       time: this.formatTime(row.event_time),
       location: row.location ?? '',
       city: row.city ?? '',
+      rawDate: row.event_date ?? undefined,
+      rawTime: row.event_time ?? undefined,
+      latitude: row.latitude ?? undefined,
+      longitude: row.longitude ?? undefined,
       price: priceLabel,
       priceColor: 'text-primary',
       popular: row.popular,
@@ -286,7 +293,9 @@ export class EventsService {
   private longDate(date: string | null): string {
     const d = this.parseDate(date);
     if (!d) return '';
-    return `${DIAS_SEMANA[d.getDay()]}, ${d.getDate()} de ${MESES_LARGOS[d.getMonth()]}`;
+    return `${DIAS_SEMANA[d.getDay()]}, ${d.getDate()} de ${
+      MESES_LARGOS[d.getMonth()]
+    }`;
   }
 
   // '08:30' -> '8:30 AM'
@@ -311,5 +320,25 @@ export class EventsService {
     if (error) throw error;
 
     return (data as unknown as EventRow[]).map((row) => this.toEventModel(row));
+  }
+
+  async getNearbyEvents(
+    lat: number,
+    lng: number,
+    radiusKm = 15
+  ): Promise<EventModel[]> {
+    const { data, error } = await this.supabaseClient.rpc('nearby_events', {
+      p_lat: lat,
+      p_lng: lng,
+      p_radius_km: radiusKm,
+    });
+
+    if (error) throw error;
+    if (!data?.length) return [];
+
+    const events = await Promise.all(
+      (data as { id: string }[]).map((row) => this.getEventById(row.id))
+    );
+    return events.filter((e): e is EventModel => e !== null);
   }
 }

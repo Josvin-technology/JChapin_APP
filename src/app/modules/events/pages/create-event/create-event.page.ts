@@ -15,7 +15,10 @@ import {
   ToastController,
   IonDatetime,
   IonDatetimeButton,
-  IonModal, IonToolbar, IonTitle } from '@ionic/angular/standalone';
+  IonModal,
+  IonToolbar,
+  IonTitle,
+} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   alertCircleOutline,
@@ -33,6 +36,12 @@ import {
 import { Router } from '@angular/router';
 import { FooterStepComponent } from '../../components/footer-step/footer-step.component';
 import { EventsService } from 'src/app/core/services/events-service';
+import { EventMapComponent } from 'src/app/shared/components/event-map/event-map.component';
+import {
+  GeocodingService,
+  PlaceSuggestion,
+} from 'src/app/core/services/geocoding-service';
+import { LocationService } from 'src/app/core/services/location-service';
 
 interface Occurrence {
   date: string;
@@ -60,7 +69,9 @@ const STEP_CONTROLS: Record<number, string[]> = {
   templateUrl: './create-event.page.html',
   styleUrls: ['./create-event.page.scss'],
   standalone: true,
-  imports: [IonTitle, IonToolbar, 
+  imports: [
+    IonTitle,
+    IonToolbar,
     IonModal,
     IonIcon,
     IonContent,
@@ -71,6 +82,7 @@ const STEP_CONTROLS: Record<number, string[]> = {
     ReactiveFormsModule,
     IonDatetime,
     IonDatetimeButton,
+    EventMapComponent,
   ],
 })
 export class CreateEventPage implements OnInit {
@@ -78,6 +90,8 @@ export class CreateEventPage implements OnInit {
   private fb = inject(FormBuilder);
   private eventsService = inject(EventsService);
   private toastController = inject(ToastController);
+  private geocodingService = inject(GeocodingService);
+  private locationService = inject(LocationService);
 
   step = signal(1);
   totalSteps = 4;
@@ -85,6 +99,11 @@ export class CreateEventPage implements OnInit {
   submitting = signal(false);
 
   coverPreview: string | null = null;
+
+  addressSuggestions = signal<PlaceSuggestion[]>([]);
+  showSuggestions = signal(false);
+  locatingMe = signal(false);
+  private addressSearchTimeout?: ReturnType<typeof setTimeout>;
 
   categories: Category[] = [
     { id: 'musica', label: 'Música', icon: '🎵', requiresPermit: true },
@@ -155,7 +174,7 @@ export class CreateEventPage implements OnInit {
 
   get selectedCategory(): Category | undefined {
     return this.categories.find(
-      (c) => c.id === this.eventForm.get('categoryId')?.value,
+      (c) => c.id === this.eventForm.get('categoryId')?.value
     );
   }
 
@@ -174,7 +193,7 @@ export class CreateEventPage implements OnInit {
         date: ['', Validators.required],
         startTime: ['', Validators.required],
         endTime: ['', Validators.required],
-      }),
+      })
     );
   }
 
@@ -223,6 +242,53 @@ export class CreateEventPage implements OnInit {
     reader.readAsDataURL(file);
   }
 
+  hideSuggestionsSoon() {
+    setTimeout(() => this.showSuggestions.set(false), 150);
+  }
+
+  onAddressInput(value: string) {
+    clearTimeout(this.addressSearchTimeout);
+    this.addressSearchTimeout = setTimeout(async () => {
+      const suggestions = await this.geocodingService.searchPlaces(value);
+      this.addressSuggestions.set(suggestions);
+      this.showSuggestions.set(suggestions.length > 0);
+    }, 300);
+  }
+
+  async selectSuggestion(suggestion: PlaceSuggestion) {
+    this.showSuggestions.set(false);
+    const result = await this.geocodingService.geocode({
+      placeId: suggestion.placeId,
+    });
+    if (!result) return;
+
+    this.eventForm.patchValue({
+      address: result.address,
+      latitude: result.coords.lat,
+      longitude: result.coords.lng,
+    });
+  }
+
+  async onMapLocationChange(coords: { lat: number; lng: number }) {
+    this.eventForm.patchValue({ latitude: coords.lat, longitude: coords.lng });
+    const address = await this.geocodingService.reverseGeocode(coords);
+    if (address) this.eventForm.patchValue({ address });
+  }
+
+  async useCurrentLocation() {
+    this.locatingMe.set(true);
+    try {
+      const pos = await this.locationService.getCurrentPosition();
+      if (!pos) {
+        await this.presentToast('No se pudo obtener tu ubicación.', 'danger');
+        return;
+      }
+      await this.onMapLocationChange(pos);
+    } finally {
+      this.locatingMe.set(false);
+    }
+  }
+
   async submit() {
     if (this.eventForm.invalid) {
       this.eventForm.markAllAsTouched();
@@ -258,7 +324,7 @@ export class CreateEventPage implements OnInit {
       console.error('Error al crear evento:', err);
       await this.presentToast(
         'No se pudo crear el evento. Intenta de nuevo.',
-        'danger',
+        'danger'
       );
     } finally {
       this.submitting.set(false);
@@ -299,4 +365,4 @@ export class CreateEventPage implements OnInit {
   timeToIso(time: string | null): string | null {
     return time ? `2000-01-01T${time}:00` : null;
   }
-};
+}

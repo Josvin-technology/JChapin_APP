@@ -10,8 +10,12 @@ export interface EventModel {
   day?: string;
   date?: string;
   time?: string;
+  rawDate?: string;
+  rawTime?: string;
   location?: string;
   city?: string;
+  latitude?: number;
+  longitude?: number;
   price?: string;
   priceColor?: string;
   popular?: boolean;

@@ -10,6 +10,7 @@ import {
 import { HeroSearchComponent } from '../../components/hero-search/hero-search.component';
 import { CategoryListComponent } from '../../components/category-list/category-list.component';
 import { EventListComponent } from '../../components/event-list/event-list.component';
+import { NearbyEventsComponent } from "../../components/nearby-events/nearby-events.component";
 
 @Component({
   selector: 'app-home',
@@ -23,9 +24,8 @@ import { EventListComponent } from '../../components/event-list/event-list.compo
     HeroSearchComponent,
     CategoryListComponent,
     EventListComponent,
-   
-    
-  ],
+    NearbyEventsComponent
+],
 })
 export class HomePage implements OnInit {
   constructor() {}

@@ -9,12 +9,13 @@ import {
 } from 'ionicons/icons';
 import { EventModel } from 'src/app/core/models/event.model';
 import { IonIcon } from '@ionic/angular/standalone';
+import { EventMapComponent } from 'src/app/shared/components/event-map/event-map.component';
 
 @Component({
   selector: 'app-event-location-traffic',
   templateUrl: './event-location-traffic.component.html',
   styleUrls: ['./event-location-traffic.component.scss'],
-  imports: [IonIcon],
+  imports: [IonIcon, EventMapComponent],
 })
 export class EventLocationTrafficComponent implements OnInit {
   @Input({ required: true }) event!: EventModel;
@@ -33,6 +34,23 @@ export class EventLocationTrafficComponent implements OnInit {
       trailSignOutline,
       locationOutline,
     });
+  }
+
+  // Deep link a Google Maps (funciona igual en navegador y en el WebView de Android).
+  openInGoogleMaps(destinationLabel?: string) {
+    const params = new URLSearchParams({ api: '1' });
+    if (this.event.latitude != null && this.event.longitude != null) {
+      params.set(
+        'destination',
+        `${this.event.latitude},${this.event.longitude}`
+      );
+    } else {
+      params.set('destination', destinationLabel ?? this.event.location ?? '');
+    }
+    window.open(
+      `https://www.google.com/maps/dir/?${params.toString()}`,
+      '_blank'
+    );
   }
 
   trafficBadgeClass(level?: string): string {

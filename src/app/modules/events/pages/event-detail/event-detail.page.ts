@@ -15,6 +15,8 @@ import { EventLocationTrafficComponent } from '../../components/event-location-t
 import { EventReviewsComponent } from '../../components/event-reviews/event-reviews.component';
 import { ReservationBarComponent } from '../../components/reservation-bar/reservation-bar.component';
 import { EventsService } from 'src/app/core/services/events-service';
+import { LocationService } from 'src/app/core/services/location-service';
+import { TrafficService } from 'src/app/core/services/traffic-service';
 
 @Component({
   selector: 'app-event-detail',
@@ -36,6 +38,8 @@ export class EventDetailPage implements OnInit {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
   private eventsService = inject(EventsService);
+  private locationService = inject(LocationService);
+  private trafficService = inject(TrafficService);
 
   event?: EventModel;
 
@@ -55,9 +59,28 @@ export class EventDetailPage implements OnInit {
         return;
       }
       this.event = event;
+      void this.loadTraffic(event)
     } catch (error) {
       console.error('No se puedo cargar el evento:', error);
       this.router.navigate(['/events']);
     }
   }
+
+
+  private async loadTraffic(event: EventModel): Promise<void>{
+    if(!event.latitude || !event.longitude) return;
+
+    try{
+      const origin = await this.locationService.getCurrentPosition();
+      if(!origin) return;
+
+      const traffic =await this.trafficService.getEventTraffic(event,origin);
+      if(traffic) event.traffic = traffic;
+
+    }catch (error){
+      console.warn('No se pudo calcular el trafico del evento.')
+    }
+
+  }
+
 }
