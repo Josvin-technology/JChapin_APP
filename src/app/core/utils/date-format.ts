@@ -63,7 +63,9 @@ export function dayNumber(date: string | null | undefined): string {
 export function longDate(date: string | null | undefined): string {
   const d = parseDate(date);
   if (!d) return '';
-  return `${DIAS_SEMANA[d.getDay()]}, ${d.getDate()} de ${MESES_LARGOS[d.getMonth()]}`;
+  return `${DIAS_SEMANA[d.getDay()]}, ${d.getDate()} de ${
+    MESES_LARGOS[d.getMonth()]
+  }`;
 }
 
 // '08:30' -> '8:30 AM'
@@ -74,4 +76,19 @@ export function formatTime(time: string | null | undefined): string {
   const suffix = h >= 12 ? 'PM' : 'AM';
   h = h % 12 || 12;
   return `${h}:${mStr} ${suffix}`;
+}
+// ¿Ya pasó la fecha/hora del evento? Sin `rawTime` se asume medianoche (mismo
+// criterio que el cron `expire-past-events` en Supabase, para que el front y
+// el backend coincidan en qué cuenta como "pasado").
+export function isPastEvent(
+  rawDate: string | null | undefined,
+  rawTime?: string | null
+): boolean {
+  const d = parseDate(rawDate);
+  if (!d) return false;
+  if (rawTime) {
+    const [h, m] = rawTime.split(':').map(Number);
+    d.setHours(h || 0, m || 0, 0, 0);
+  }
+  return d.getTime() < Date.now();
 }

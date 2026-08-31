@@ -25,7 +25,7 @@ export class HomePage implements OnInit {
   }
 
   get historyTickets() {
-    return this.tickets().filter((ticket) => ticket.status === 'used');
+    return this.tickets().filter((ticket) => ticket.status === 'used' || ticket.status === 'expired');
   }
 
   constructor() {}

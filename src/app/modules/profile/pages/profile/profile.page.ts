@@ -13,9 +13,9 @@ import {
   APPROVER_METRICS,
   BASE_MENU_ACTIONS,
   ORGANIZER_METRICS,
-  ORGANIZER_MENU_ACTION,
+  ORGANIZER_MENU_ACTIONS,
   PROFILE_USER,
-  USER_MENU_ACTION,
+  USER_MENU_ACTIONS,
 } from 'src/app/core/data/profile.data';
 import {
   ProfileMenuAction,
@@ -32,7 +32,6 @@ import {
   createOutline,
   documentTextOutline,
   heartOutline,
-  people,
   peopleOutline,
   statsChartOutline,
   ticketOutline,
@@ -68,9 +67,9 @@ export class ProfilePage implements OnInit {
   private toastController = inject(ToastController);
   private storage = inject(StorageService);
   private permission = inject(PermissionService);
-  private pushService = inject (PushNotificationsService);
+  private pushService = inject(PushNotificationsService);
 
-  canRoleSwitchRles = this.permission.canRoleSwitch;
+  canRoleSwitch = this.permission.canRoleSwitch;
 
   private primaryRole = computed<ProfileRole>(() => {
     const roles = this.auth.roles();
@@ -118,7 +117,7 @@ export class ProfilePage implements OnInit {
     });
 
     effect(() => {
-      if (!this.canRoleSwitchRles()) {
+      if (!this.canRoleSwitch()) {
         this.selectedRole = this.primaryRole();
       }
     });
@@ -140,10 +139,10 @@ export class ProfilePage implements OnInit {
     }
 
     if (this.selectedRole === 'organizer') {
-      return [...ORGANIZER_MENU_ACTION, ...BASE_MENU_ACTIONS];
+      return [...ORGANIZER_MENU_ACTIONS, ...BASE_MENU_ACTIONS];
     }
 
-    return [...USER_MENU_ACTION, ...BASE_MENU_ACTIONS];
+    return [...USER_MENU_ACTIONS, ...BASE_MENU_ACTIONS];
   }
 
   async logout() {
@@ -167,7 +166,7 @@ export class ProfilePage implements OnInit {
       const avatarUrl = await this.storage.uploadFile(
         'avatars',
         `${userId}.${extension}`,
-        file,
+        file
       );
       await this.auth.updateAvatarUrl(avatarUrl);
     } catch {

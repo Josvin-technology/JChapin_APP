@@ -8,6 +8,7 @@ import { EventModel } from 'src/app/core/models/event.model';
 import { AuthService } from 'src/app/core/services/auth-service';
 import { PermissionService } from 'src/app/core/services/permission-service';
 import { TicketsService } from 'src/app/core/services/tickets-service';
+import { isPastEvent } from 'src/app/core/utils/date-format';
 
 @Component({
   selector: 'app-reservation-bar',
@@ -35,6 +36,14 @@ export class ReservationBarComponent implements OnInit {
 
   ngOnInit() {}
 
+  get eventHasPassed(): boolean {
+    return(
+      this.event?.status === 'completed' || 
+      this.event?.status === 'cancelled' ||
+      isPastEvent(this.event?.rawDate, this.event?.rawTime)
+    );
+  }
+
   private async presentToast(
     message: string,
     color: 'success' | 'danger' | 'warning' = 'success',
@@ -57,6 +66,11 @@ export class ReservationBarComponent implements OnInit {
 
   async reserveTicket() {
     if (!this.event?.id || this.reserving()) return;
+
+    if(this.eventHasPassed){
+      await this.presentToast('este evento ya fue finalizado, no se puede reservar', 'warning');
+      return;
+    }
 
     if (!this.auth.isLoggedIn()) {
       this.router.navigate(['/login']);

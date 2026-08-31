@@ -1,4 +1,4 @@
-export type EventStatus = 'draft' | 'pending_review' | 'published' | 'rejected';
+export type EventStatus = 'draft' | 'pending_review' | 'published' | 'rejected' | 'cancelled' | 'completed';
 
 export interface EventModel {
   id?: string;

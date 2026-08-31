@@ -29,7 +29,7 @@ export const BASE_MENU_ACTIONS: ProfileMenuAction[] = [
   { label: 'Configuracion', icon: 'settings-outline' },
 ];
 
-export const USER_MENU_ACTION: ProfileMenuAction[] = [
+export const USER_MENU_ACTIONS: ProfileMenuAction[] = [
   {
     label: 'Eventos guardados',
     icon: 'heart-outline',
@@ -40,9 +40,7 @@ export const USER_MENU_ACTION: ProfileMenuAction[] = [
   { label: 'Mi agenda', icon: 'calendar-outline' },
 ];
 
-export const ORGANIZER_MENU_ACTION: ProfileMenuAction[] = [
+export const ORGANIZER_MENU_ACTIONS: ProfileMenuAction[] = [
   { label: 'Mis eventos', icon: 'calendar-outline', route: '/events-mine' },
   { label: 'Mi agenda', icon: 'calendar-outline' },
 ];
-
-

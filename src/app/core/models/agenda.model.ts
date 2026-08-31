@@ -33,7 +33,7 @@ export interface Ticket {
 }
 
 export type TicketType = 'general' | 'vip' | 'gratuito';
-export type TicketStatus = 'active' | 'used' | 'cancelled';
+export type TicketStatus = 'active' | 'used' | 'cancelled'| 'expired';
 
 /**
  * Modelo de vista para la página de agenda.

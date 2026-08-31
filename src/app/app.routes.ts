@@ -69,15 +69,6 @@ export const routes: Routes = [
           ),
       },
       {
-        path: 'events-mine',
-        canActivate: [permissionGuard],
-        data: { permission: 'events.manage' },
-        loadComponent: () =>
-          import('./modules/events/pages/my-events/my-events.page').then(
-            (m) => m.MyEventsPage
-          ),
-      },
-      {
         path: 'events/:id',
         loadComponent: () =>
           import('./modules/events/pages/event-detail/event-detail.page').then(
@@ -125,6 +116,15 @@ export const routes: Routes = [
           import(
             './modules/approvals/pages/event-documents/event-documents.page'
           ).then((m) => m.EventDocumentsPage),
+      },
+      {
+        path: 'events-mine',
+        canActivate: [permissionGuard],
+        data: { permission: 'events.manage' },
+        loadComponent: () =>
+          import(
+            './modules/events/pages/my-events/my-events.page'
+          ).then((m) => m.MyEventsPage),
       },
       {
         path: 'notifications',
