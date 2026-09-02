@@ -16,6 +16,7 @@ import {
   ORGANIZER_MENU_ACTIONS,
   PROFILE_USER,
   USER_MENU_ACTIONS,
+  STAFF_VALIDATION_MENU_ACTION,
 } from 'src/app/core/data/profile.data';
 import {
   ProfileMenuAction,
@@ -33,6 +34,7 @@ import {
   documentTextOutline,
   heartOutline,
   peopleOutline,
+  qrCodeOutline,
   statsChartOutline,
   ticketOutline,
 } from 'ionicons/icons';
@@ -44,6 +46,7 @@ import { StorageService } from 'src/app/core/services/storage-service';
 import { PermissionService } from 'src/app/core/services/permission-service';
 import { CanDirective } from 'src/app/core/directives/can-directive';
 import { PushNotificationsService } from 'src/app/core/services/push-notifications-service';
+import { EventStaffService } from 'src/app/core/services/event-staff-service';
 
 @Component({
   selector: 'app-profile',
@@ -68,7 +71,9 @@ export class ProfilePage implements OnInit {
   private storage = inject(StorageService);
   private permission = inject(PermissionService);
   private pushService = inject(PushNotificationsService);
+  private eventStaff = inject(EventStaffService);
 
+  hasStaffAccess = signal(false);
   canRoleSwitch = this.permission.canRoleSwitch;
 
   private primaryRole = computed<ProfileRole>(() => {
@@ -114,6 +119,7 @@ export class ProfilePage implements OnInit {
       documentTextOutline,
       peopleOutline,
       chevronForwardOutline,
+      qrCodeOutline,
     });
 
     effect(() => {
@@ -123,7 +129,12 @@ export class ProfilePage implements OnInit {
     });
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    this.eventStaff
+      .hasAnyActiveGrant()
+      .then((has) => this.hasStaffAccess.set(has))
+      .catch((error) => console.error('No se pudo revisar el acceso: ', error));
+  }
 
   get menuActions(): ProfileMenuAction[] {
     if (this.selectedRole === 'approver') {
@@ -142,7 +153,11 @@ export class ProfilePage implements OnInit {
       return [...ORGANIZER_MENU_ACTIONS, ...BASE_MENU_ACTIONS];
     }
 
-    return [...USER_MENU_ACTIONS, ...BASE_MENU_ACTIONS];
+    const userActions = this.hasStaffAccess()
+      ? [...USER_MENU_ACTIONS, STAFF_VALIDATION_MENU_ACTION]
+      : USER_MENU_ACTIONS;
+
+    return [...userActions, ...BASE_MENU_ACTIONS];
   }
 
   async logout() {

@@ -1,0 +1,131 @@
+<ion-content [fullscreen]="false" [scrollY]="true">
+ <main
+   class="w-full max-w-md mx-auto px-4 flex flex-col gap-6"
+   style="
+     padding-top: calc(1.25rem + env(safe-area-inset-top, 0px));
+     padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+   "
+ >
+   <!-- Header -->
+   <div class="flex items-center gap-3">
+     <button
+       (click)="goBack()"
+       type="button"
+       class="w-10 h-10 !rounded-full flex items-center justify-center bg-white border border-gray-200/80 shadow-sm text-gray-700 active:scale-95 transition-transform"
+     >
+       <ion-icon name="chevron-back-outline" class="text-xl"></ion-icon>
+     </button>
+     <div class="flex-1 min-w-0">
+       <h1 class="text-2xl font-extrabold text-gray-900 tracking-tight leading-tight">
+         Validar tickets
+       </h1>
+       <p class="text-xs text-gray-500 font-medium truncate">
+         Elige el evento que vas a validar
+       </p>
+     </div>
+   </div>
+
+
+   @if (loading()) {
+     <div class="flex justify-center py-12">
+       <ion-spinner name="crescent" class="text-emerald-800"></ion-spinner>
+     </div>
+   } @else if (ownEvents().length === 0 && staffGrants().length === 0) {
+     <!-- Estado Vacío -->
+     <div class="flex flex-col items-center justify-center py-12 px-4 bg-white rounded-3xl border border-gray-100 shadow-sm text-center">
+       <div class="w-14 h-14 rounded-2xl bg-emerald-50 text-emerald-800 flex items-center justify-center mb-3">
+         <ion-icon name="qr-code-outline" class="text-3xl"></ion-icon>
+       </div>
+       <p class="text-base font-bold text-gray-800">
+         No tienes eventos para validar
+       </p>
+       <p class="text-xs text-gray-400 mt-1 max-w-[240px]">
+         Cuando crees eventos o te den acceso como validador, aparecerán aquí.
+       </p>
+     </div>
+   } @else {
+
+
+     <!-- Sección: Tus Eventos -->
+     @if (ownEvents().length > 0) {
+       <section class="flex flex-col gap-3">
+         <p class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider px-1">
+           Tus eventos
+         </p>
+         <div class="flex flex-col gap-3">
+           @for (event of ownEvents(); track event.id) {
+             <div
+               (click)="openScanner(event.id!)"
+               role="button"
+               tabindex="0"
+               class="w-full bg-white rounded-2xl border border-gray-100 shadow-sm p-3.5 flex items-center gap-3.5 cursor-pointer active:scale-[0.98] transition-all hover:border-emerald-200"
+             >
+               <img
+                 [src]="event.image"
+                 [alt]="event.title"
+                 class="w-14 h-14 rounded-xl object-cover flex-shrink-0 border border-gray-100"
+               />
+               <div class="flex-1 min-w-0">
+                 <p class="text-sm font-bold text-gray-900 truncate">{{ event.title }}</p>
+                 <p class="text-[11px] text-gray-400 font-medium truncate mt-0.5">
+                   {{ event.date }}
+                 </p>
+               </div>
+              
+               <!-- Botón de Acción Escanear -->
+               <div class="flex items-center gap-1 px-3 py-2 rounded-xl bg-emerald-50 text-emerald-800 flex-shrink-0 font-bold text-xs">
+                 <ion-icon name="qr-code-outline" class="text-base"></ion-icon>
+                 <span>Validar</span>
+               </div>
+             </div>
+           }
+         </div>
+       </section>
+     }
+
+
+     <!-- Sección: Acceso Temporal (Staff) -->
+     @if (staffGrants().length > 0) {
+       <section class="flex flex-col gap-3">
+         <p class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider px-1">
+           Acceso temporal
+         </p>
+         <div class="flex flex-col gap-3">
+           @for (grant of staffGrants(); track grant.eventId) {
+             <div
+               (click)="openScanner(grant.eventId)"
+               role="button"
+               tabindex="0"
+               class="w-full bg-white rounded-2xl border border-gray-100 shadow-sm p-3.5 flex items-center gap-3.5 cursor-pointer active:scale-[0.98] transition-all hover:border-emerald-200"
+             >
+               <img
+                 [src]="grant.eventImage || 'assets/images/user-avatar.jpg'"
+                 [alt]="grant.eventTitle"
+                 class="w-14 h-14 rounded-xl object-cover flex-shrink-0 border border-gray-100"
+               />
+               <div class="flex-1 min-w-0">
+                 <p class="text-sm font-bold text-gray-900 truncate">{{ grant.eventTitle }}</p>
+                
+                 <div class="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-800 bg-emerald-50 px-2 py-0.5 rounded-md">
+                   <ion-icon name="time-outline" class="text-xs"></ion-icon>
+                   <span>{{ timeRemainingLabel(grant) }}</span>
+                 </div>
+               </div>
+
+
+               <!-- Botón de Acción Escanear -->
+               <div class="flex items-center gap-1 px-3 py-2 rounded-xl bg-emerald-800 text-white flex-shrink-0 font-bold text-xs shadow-sm">
+                 <ion-icon name="qr-code-outline" class="text-base"></ion-icon>
+                 <span>Validar</span>
+               </div>
+             </div>
+           }
+         </div>
+       </section>
+     }
+   }
+ </main>
+</ion-content>
+
+
+

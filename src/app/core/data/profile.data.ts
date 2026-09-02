@@ -42,5 +42,12 @@ export const USER_MENU_ACTIONS: ProfileMenuAction[] = [
 
 export const ORGANIZER_MENU_ACTIONS: ProfileMenuAction[] = [
   { label: 'Mis eventos', icon: 'calendar-outline', route: '/events-mine' },
+  { label: 'validar tickets', icon: 'qr-code-outline', route: '/validation'},
   { label: 'Mi agenda', icon: 'calendar-outline' },
 ];
+
+export const STAFF_VALIDATION_MENU_ACTION: ProfileMenuAction = {
+  label: 'validar tickets',
+  icon: 'qr-code-online',
+  route: '/validation'
+};

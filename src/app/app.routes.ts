@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { permissionGuard } from './core/guards/permission-guard';
 import { authGuard } from './core/guards/auth-guard';
+import { eventValidationGuard } from './core/guards/event-validation-guard';
 
 export const routes: Routes = [
   {
@@ -122,9 +123,9 @@ export const routes: Routes = [
         canActivate: [permissionGuard],
         data: { permission: 'events.manage' },
         loadComponent: () =>
-          import(
-            './modules/events/pages/my-events/my-events.page'
-          ).then((m) => m.MyEventsPage),
+          import('./modules/events/pages/my-events/my-events.page').then(
+            (m) => m.MyEventsPage
+          ),
       },
       {
         path: 'notifications',
@@ -137,7 +138,7 @@ export const routes: Routes = [
       {
         path: 'admin/users/:id',
         canActivate: [permissionGuard],
-        data: {permission: 'admin.users'},
+        data: { permission: 'admin.users' },
         loadComponent: () =>
           import(
             './modules/admin/pages/admin-user-detail/admin-user-detail.page'
@@ -146,14 +147,40 @@ export const routes: Routes = [
       {
         path: 'admin/users',
         canActivate: [permissionGuard],
-        data: {permission: 'admin.users'},
+        data: { permission: 'admin.users' },
         loadComponent: () =>
           import('./modules/admin/pages/users-list/users-list.page').then(
             (m) => m.UsersListPage
           ),
       },
+      {
+        path: 'events-mine/:eventId/validators',
+        canActivate: [permissionGuard],
+        data: { permission: 'events.manage' },
+        loadComponent: () =>
+          import(
+            './modules/events/pages/event-validators/event-validators.page'
+          ).then((m) => m.EventValidatorsPage),
+      },
+      {
+        path: 'validation',
+        canActivate: [authGuard],
+        loadComponent: () =>
+          import(
+            './modules/tickets/pages/validations-events/validations-events.page'
+          ).then((m) => m.ValidationsEventsPage),
+      },
+      {
+        path: 'validation/:eventId',
+        canActivate: [eventValidationGuard],
+        loadComponent: () =>
+          import(
+            './modules/tickets/pages/ticket-scanner/ticket-scanner.page'
+          ).then((m) => m.TicketScannerPage),
+      },
     ],
   },
+
   {
     path: 'verify-code',
     loadComponent: () =>

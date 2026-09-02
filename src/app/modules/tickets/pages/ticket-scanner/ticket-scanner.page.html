@@ -1,0 +1,161 @@
+<ion-content [fullscreen]="false" [scrollY]="true">
+  <main
+    class="w-full max-w-md mx-auto px-4 flex flex-col gap-5"
+    style="
+      padding-top: calc(1.25rem + env(safe-area-inset-top, 0px));
+      padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+    "
+  >
+    <!-- Header -->
+    <div class="flex items-center gap-3">
+      <button
+        (click)="goBack()"
+        type="button"
+        class="w-10 h-10 !rounded-full flex items-center justify-center bg-white border border-gray-200/80 shadow-sm text-gray-700 active:scale-95 transition-transform"
+      >
+        <ion-icon name="chevron-back-outline" class="text-xl"></ion-icon>
+      </button>
+      <div class="flex-1 min-w-0">
+        <h1
+          class="text-2xl font-extrabold text-gray-900 tracking-tight leading-tight"
+        >
+          Validar tickets
+        </h1>
+        <p class="text-xs text-gray-500 font-medium truncate">
+          {{ eventTitle() }}
+        </p>
+      </div>
+    </div>
+
+    <!-- Resultado de la última validación -->
+    @if (result(); as r) {
+    <section
+      class="rounded-3xl border p-6 flex flex-col items-center gap-3 text-center shadow-sm transition-all"
+      [ngClass]="r.ok ? 'bg-emerald-50/80 border-emerald-200 text-emerald-950' : 'bg-rose-50/80 border-rose-200 text-rose-950'"
+    >
+      <div
+        class="w-16 h-16 rounded-full flex items-center justify-center shadow-sm"
+        [ngClass]="r.ok ? 'bg-emerald-800 text-white' : 'bg-rose-600 text-white'"
+      >
+        <ion-icon
+          [name]="r.ok ? 'checkmark-circle-outline' : 'close-circle-outline'"
+          class="text-3xl"
+        ></ion-icon>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <p
+          class="text-lg font-black tracking-tight"
+          [class.text-emerald-900]="r.ok"
+          [class.text-rose-900]="!r.ok"
+        >
+          {{ messageFor(r) }}
+        </p>
+
+        @if (r.ok) {
+        <p class="text-xs font-semibold text-emerald-700">
+          {{ r.buyerName }} · {{ r.ticket?.type }}
+        </p>
+        } @else if (r.eventTitle) {
+        <p class="text-xs text-rose-600 font-medium">{{ r.eventTitle }}</p>
+        }
+      </div>
+
+      <div
+        (click)="scanAnother()"
+        role="button"
+        tabindex="0"
+        class="mt-2 h-11 px-6 !rounded-full bg-gray-900 text-white text-xs font-bold flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md cursor-pointer"
+      >
+        <ion-icon name="qr-code-outline" class="text-base"></ion-icon>
+        <span>Escanear otro ticket</span>
+      </div>
+    </section>
+    } @else {
+
+    <!-- Escaneo con cámara -->
+    <section
+      class="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 flex flex-col items-center gap-4 text-center"
+    >
+      <div
+        class="w-16 h-16 rounded-2xl bg-emerald-50 text-emerald-800 flex items-center justify-center"
+      >
+        <ion-icon name="qr-code-outline" class="text-3xl"></ion-icon>
+      </div>
+
+      <div class="flex flex-col gap-1">
+        <p class="text-sm font-bold text-gray-900">Escanear código QR</p>
+        <p class="text-xs text-gray-500 max-w-[250px] leading-relaxed">
+          Apunta con la cámara al código QR impreso o digital del comprador.
+        </p>
+      </div>
+
+      <div
+        (click)="(!scanning() && !validating()) ? scanQr() : null"
+        role="button"
+        tabindex="0"
+        class="w-full h-12 !rounded-2xl bg-emerald-800 text-white text-xs font-extrabold flex items-center justify-center gap-2 active:scale-[0.98] transition-all shadow-sm cursor-pointer"
+        [class.opacity-60]="scanning() || validating()"
+      >
+        @if (scanning()) {
+        <ion-spinner name="crescent" class="w-5 h-5"></ion-spinner>
+        <span>Abriendo cámara…</span>
+        } @else {
+        <ion-icon name="camera-outline" class="text-lg"></ion-icon>
+        <span>Escanear QR</span>
+        }
+      </div>
+
+      @if (cameraUnavailable()) {
+      <div
+        class="p-2.5 rounded-xl bg-amber-50 border border-amber-200/60 text-amber-800 text-[11px] font-medium flex items-center gap-2 text-left"
+      >
+        <ion-icon
+          name="alert-circle-outline"
+          class="text-base shrink-0 text-amber-600"
+        ></ion-icon>
+        <span>No se pudo acceder a la cámara. Utiliza el código manual.</span>
+      </div>
+      }
+    </section>
+
+    <!-- Respaldo: código manual -->
+    <section
+      class="bg-white rounded-3xl border border-gray-100 shadow-sm p-4 flex flex-col gap-3"
+    >
+      <p
+        class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider inline-flex items-center gap-1.5 px-1"
+      >
+        <ion-icon name="keypad-outline" class="text-xs"></ion-icon>
+        O ingresa el código a mano
+      </p>
+
+      <div class="flex gap-2 items-center">
+        <input
+          type="text"
+          [(ngModel)]="manualCode"
+          placeholder="JCH-2026-XXXXXX"
+          class="flex-1 h-11 rounded-xl bg-gray-50 border border-gray-200 px-3.5 text-xs font-mono font-bold uppercase text-gray-900 placeholder:text-gray-400 focus:outline-none focus:border-emerald-700 focus:bg-white transition-all"
+          (keyup.enter)="validateManualCode()"
+        />
+
+        <div
+          role="button"
+          tabindex="0"
+          (click)="(!validating() && manualCode.trim()) ? validateManualCode() : null"
+          class="h-11 px-4 !rounded-xl bg-gray-900 text-white text-xs font-bold flex items-center justify-center shrink-0 transition-all cursor-pointer select-none"
+          [class.opacity-40]="validating() || !manualCode.trim()"
+          [class.pointer-events-none]="validating() || !manualCode.trim()"
+          [class.active:scale-95]="!validating() && manualCode.trim()"
+        >
+          @if (validating()) {
+          <ion-spinner name="crescent" class="w-4 h-4"></ion-spinner>
+          } @else {
+          <span>Validar</span>
+          }
+        </div>
+      </div>
+    </section>
+    }
+  </main>
+</ion-content>

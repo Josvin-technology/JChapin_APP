@@ -17,8 +17,7 @@ import {
   alertCircleOutline,
   chevronBackOutline,
   chevronForwardOutline,
-  peopleOutline,
-} from 'ionicons/icons';
+  peopleOutline, qrCodeOutline, shieldCheckmarkOutline } from 'ionicons/icons';
 
 // Filtro del segmento superior: 'all' + los estados del evento.
 type EventFilter = 'all' | EventStatus;
@@ -76,13 +75,7 @@ export class MyEventsPage implements OnInit {
   });
 
   constructor() {
-    addIcons({
-      chevronBackOutline,
-      chevronForwardOutline,
-      addOutline,
-      peopleOutline,
-      alertCircleOutline,
-    });
+    addIcons({chevronBackOutline,addOutline,peopleOutline,alertCircleOutline,chevronForwardOutline,qrCodeOutline,shieldCheckmarkOutline,});
   }
 
   async ngOnInit() {

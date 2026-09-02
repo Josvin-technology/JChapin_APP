@@ -1,0 +1,218 @@
+<ion-content [fullscreen]="false" [scrollY]="true">
+  <main
+    class="w-full max-w-md mx-auto px-4 flex flex-col gap-5"
+    style="
+      padding-top: calc(1.25rem + env(safe-area-inset-top, 0px));
+      padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+    "
+  >
+    <!-- Header -->
+    <div class="flex items-center gap-3">
+      <button
+        (click)="goBack()"
+        class="w-10 h-10 !rounded-full flex items-center justify-center bg-white border border-gray-200/80 shadow-sm text-gray-700 active:scale-95 transition-transform"
+      >
+        <ion-icon name="chevron-back-outline" class="text-xl"></ion-icon>
+      </button>
+      <div class="flex-1 min-w-0">
+        <h1
+          class="text-2xl font-extrabold text-gray-900 tracking-tight leading-tight"
+        >
+          Validadores
+        </h1>
+        <p class="text-xs text-gray-500 font-medium truncate">
+          {{ eventTitle() }}
+        </p>
+      </div>
+    </div>
+
+    @if (loading()) {
+    <div class="flex justify-center py-12">
+      <ion-spinner name="crescent" class="text-emerald-800"></ion-spinner>
+    </div>
+    } @else {
+    <!-- Card: Buscar y dar acceso -->
+    <section
+      class="bg-white rounded-3xl border border-gray-100 shadow-sm p-4 flex flex-col gap-4"
+    >
+      <div>
+        <p
+          class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider"
+        >
+          Dar acceso temporal
+        </p>
+      </div>
+
+      <!-- Barra de Búsqueda -->
+      <div class="relative">
+        <ion-searchbar
+          placeholder="Buscar por nombre o correo"
+          [debounce]="400"
+          (ionInput)="onSearchChange($event)"
+          class="!p-0 !min-h-0 [--background: #f8fafc] [--border-radius: 16px] [--placeholder-color: #94a3b8]"
+        >
+        </ion-searchbar>
+      </div>
+
+      <!-- Selector de Duración (Chips estilizados) -->
+      <div class="flex flex-col gap-1.5">
+        <span
+          class="text-[10px] font-bold text-gray-400 uppercase tracking-wide"
+        >
+          Duración del permiso:
+        </span>
+        <div class="flex gap-2 overflow-x-auto no-scrollbar py-0.5">
+          @for (d of durations; track d.hours) {
+          <div
+            (click)="selectDuration(d.hours)"
+            role="button"
+            tabindex="0"
+            class="flex-shrink-0 cursor-pointer select-none px-3.5 py-1.5 !rounded-full text-xs font-bold transition-all border"
+            [class.bg-emerald-800]="selectedHours() === d.hours"
+            [class.text-white]="selectedHours() === d.hours"
+            [class.border-emerald-800]="selectedHours() === d.hours"
+            [class.shadow-sm]="selectedHours() === d.hours"
+            [class.bg-gray-100]="selectedHours() !== d.hours"
+            [class.text-gray-600]="selectedHours() !== d.hours"
+            [class.border-transparent]="selectedHours() !== d.hours"
+          >
+            {{ d.label }}
+          </div>
+          }
+        </div>
+      </div>
+
+      <!-- Resultados de la búsqueda -->
+      @if (searching()) {
+      <div class="flex justify-center py-4 border-t border-gray-100">
+        <ion-spinner
+          name="crescent"
+          class="text-emerald-800 w-5 h-5"
+        ></ion-spinner>
+      </div>
+      } @else if (searchTerm().trim() && candidates().length === 0) {
+      <div class="py-4 border-t border-gray-100 text-center">
+        <p class="text-xs font-medium text-gray-400">
+          Sin resultados encontrados.
+        </p>
+      </div>
+      } @else if (candidates().length > 0) {
+      <div
+        class="flex flex-col divide-y divide-gray-100 border-t border-gray-100 pt-2"
+      >
+        @for (c of candidates(); track c.id) {
+        <div class="flex items-center gap-3 py-2.5">
+          <img
+            [src]="c.avatarUrl || 'assets/images/user-avatar.jpg'"
+            [alt]="c.name"
+            class="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-gray-100"
+          />
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-bold text-gray-900 truncate">{{ c.name }}</p>
+            <p class="text-[11px] text-gray-400 truncate mt-0.5">
+              {{ c.email }}
+            </p>
+          </div>
+          <button
+            type="button"
+            (click)="addStaff(c)"
+            [disabled]="grantingId() === c.id"
+            class="h-8 px-3.5 flex items-center justify-center gap-1.5 rounded-full bg-emerald-800 text-white text-xs font-bold active:scale-95 disabled:opacity-50 transition-all shrink-0"
+          >
+            @if (grantingId() === c.id) {
+            <ion-spinner name="crescent" class="w-4 h-4"></ion-spinner>
+            } @else {
+            <ion-icon name="add-outline" class="text-base"></ion-icon>
+            <span>Agregar</span>
+            }
+          </button>
+        </div>
+        }
+      </div>
+      }
+    </section>
+
+    <!-- Lista: Usuarios con acceso vigente -->
+    <section class="flex flex-col gap-3 mt-1">
+      <div class="flex items-center justify-between px-1">
+        <p
+          class="text-[11px] font-extrabold text-gray-400 uppercase tracking-wider"
+        >
+          Con acceso ({{ grants().length }})
+        </p>
+      </div>
+
+      @if (grants().length === 0) {
+      <div
+        class="flex flex-col items-center justify-center py-10 px-4 bg-white rounded-3xl border border-gray-100 shadow-sm text-center"
+      >
+        <div
+          class="w-12 h-12 rounded-2xl bg-emerald-50 text-emerald-800 flex items-center justify-center mb-3"
+        >
+          <ion-icon name="shield-checkmark-outline" class="text-2xl"></ion-icon>
+        </div>
+        <p class="text-sm font-bold text-gray-800">
+          Todavía no le diste acceso a nadie
+        </p>
+        <p class="text-xs text-gray-400 mt-1 max-w-[220px]">
+          Busca usuarios por nombre o correo para asignarles permisos de
+          validación.
+        </p>
+      </div>
+      } @else {
+      <div class="flex flex-col gap-2.5">
+        @for (grant of grants(); track grant.profileId) {
+        <div
+          class="bg-white rounded-2xl border border-gray-100 shadow-sm p-3.5 flex items-center gap-3"
+        >
+          <img
+            [src]="grant.avatarUrl || 'assets/images/user-avatar.jpg'"
+            [alt]="grant.name"
+            class="w-10 h-10 rounded-full object-cover flex-shrink-0 border border-gray-100"
+            [class.opacity-40]="isExpired(grant)"
+          />
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-bold text-gray-900 truncate">
+              {{ grant.name }}
+            </p>
+            <p class="text-[11px] text-gray-400 truncate mt-0.5">
+              {{ grant.email }}
+            </p>
+
+            <div
+              class="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold"
+            >
+              <ion-icon
+                name="time-outline"
+                [class.text-emerald-700]="!isExpired(grant)"
+                [class.text-gray-400]="isExpired(grant)"
+              ></ion-icon>
+              <span
+                [class.text-emerald-800]="!isExpired(grant)"
+                [class.text-gray-400]="isExpired(grant)"
+              >
+                {{ timeRemainingLabel(grant) }}
+              </span>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            (click)="revoke(grant)"
+            [disabled]="revokingId() === grant.profileId"
+            class="w-9 h-9 flex items-center justify-center rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-100 active:scale-95 disabled:opacity-50 transition-all shrink-0"
+          >
+            @if (revokingId() === grant.profileId) {
+            <ion-spinner name="crescent" class="w-4 h-4"></ion-spinner>
+            } @else {
+            <ion-icon name="person-remove-outline" class="text-base"></ion-icon>
+            }
+          </button>
+        </div>
+        }
+      </div>
+      }
+    </section>
+    }
+  </main>
+</ion-content>
