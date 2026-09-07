@@ -62,7 +62,7 @@ export class HeroSearchComponent {
 
   private allQuickActions: QuickAction[] = [
     { label: 'Explorar', icon: 'compass-outline', route: '/explore' },
-    { label: 'Mapa', icon: 'map-outline', route: '/explore' },
+    { label: 'Mapa', icon: 'map-outline', route: '/events-map' },
     {
       label: 'Crear',
       icon: 'add-outline',

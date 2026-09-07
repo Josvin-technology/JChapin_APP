@@ -4,6 +4,7 @@ import { SupabaseService } from './supabase-service';
 import { AuthService } from './auth-service';
 import { StorageService } from './storage-service';
 import { EventModel, EventStatus } from '../models/event.model';
+import { MapEventPin } from '../models/map-event.model';
 
 const PERMIT_CAPACITY_THRESHOLD = 500;
 const MESES_CORTOS = [
@@ -68,6 +69,19 @@ interface EventRow {
   event_categories: { categories: { name: string } | null }[] | null;
   latitude: number | null;
   longitude: number | null;
+}
+
+interface NearbyMapRow {
+  id: string;
+  title: string;
+  status: EventStatus;
+  image_url: string | null;
+  event_date: string | null;
+  event_time: string | null;
+  location: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  distance_km: number | null;
 }
 
 // Campos que se piden a Supabase para armar un EventModel (evita traer columnas de más).
@@ -340,5 +354,44 @@ export class EventsService {
       (data as { id: string }[]).map((row) => this.getEventById(row.id))
     );
     return events.filter((e): e is EventModel => e !== null);
+  }
+
+  async getNearbyEventsForMap(
+    lat: number,
+    lng: number,
+    radiusKm = 15,
+    recentDays = 30
+  ): Promise<MapEventPin[]> {
+    const { data, error } = await this.supabaseClient.rpc('nearby_events_map', {
+      p_lat: lat,
+      p_lng: lng,
+      p_radius_km: radiusKm,
+      p_recent_days: recentDays,
+    });
+
+    if (error) throw error;
+
+    return (data as unknown as NearbyMapRow[]).map((row) =>
+      this.toMapEventPin(row)
+    );
+  }
+
+  private toMapEventPin(row: NearbyMapRow): MapEventPin {
+    const date = this.longDate(row.event_date);
+    const dateLabel = row.status === 'completed' ? `Completado el ${date}` : `Prox: ${date}`;
+
+    return {
+      id: row.id,
+      title: row.title ?? '',
+      image: row.image_url ?? FALLBACK_IMAGE,
+      dateLabel,
+      status: row.status,
+      location: row.location ?? '',
+      latitude: row.latitude ?? 0,
+      longitude: row.longitude ?? 0,
+      distanceKm: row.distance_km ?? 0,
+      rawDate: row.event_date ?? undefined,
+      rawTime: row.event_time ?? undefined,
+    };
   }
 }

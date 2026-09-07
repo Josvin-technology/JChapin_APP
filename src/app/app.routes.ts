@@ -178,6 +178,13 @@ export const routes: Routes = [
             './modules/tickets/pages/ticket-scanner/ticket-scanner.page'
           ).then((m) => m.TicketScannerPage),
       },
+      {
+        path: 'events-map',
+        loadComponent: () =>
+          import('./modules/events/pages/events-map/events-map.page').then(
+            (m) => m.EventsMapPage
+          ),
+      },
     ],
   },
 
