@@ -13,7 +13,11 @@
       <p class="text-sm leading-7 text-neutral/70">{{ event.description }}</p>
     </section>
 
-    <app-event-location-traffic [event]="event" />
+    <app-event-location-traffic
+      [event]="event"
+      [locationAvailable]="locationAvailable()"
+      (retryLocation)="retryLocation()"
+    />
 
     <app-event-reviews [event]="event" />
   </main>

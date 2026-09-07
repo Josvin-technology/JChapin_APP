@@ -68,10 +68,7 @@ export class LocationService {
         return null;
       }
 
-      const result = await Geolocation.getCurrentPosition({
-        enableHighAccuracy: true,
-        timeout: 10000,
-      });
+      const result = await this.requestPosition();
       const pos: Coordinates = {
         lat: result.coords.latitude,
         lng: result.coords.longitude,
@@ -89,5 +86,24 @@ export class LocationService {
   // Best-effort: pide ubicación y la deja en la señal (guardado lo hace el effect).
   async syncToProfile(): Promise<void> {
     await this.getCurrentPosition();
+  }
+
+  private async requestPosition() {
+    try {
+      return await Geolocation.getCurrentPosition({
+        enableHighAccuracy: true,
+        timeout: 15000,
+      });
+    } catch (error) {
+      console.warn(
+        '[Location] Timeout con alta precisión, reintentando con ubicación por red:',
+        error
+      );
+      return await Geolocation.getCurrentPosition({
+        enableHighAccuracy: false,
+        timeout: 10000,
+        maximumAge: 60000,
+      });
+    }
   }
 }

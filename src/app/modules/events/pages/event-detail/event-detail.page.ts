@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -43,6 +43,8 @@ export class EventDetailPage implements OnInit {
 
   event?: EventModel;
 
+  locationAvailable = signal(true);
+
   constructor() {}
 
   async ngOnInit() {
@@ -58,29 +60,36 @@ export class EventDetailPage implements OnInit {
         this.router.navigate(['/events']);
         return;
       }
+
       this.event = event;
-      void this.loadTraffic(event)
+      void this.loadTraffic(event);
     } catch (error) {
       console.error('No se puedo cargar el evento:', error);
       this.router.navigate(['/events']);
     }
   }
 
-
-  private async loadTraffic(event: EventModel): Promise<void>{
-    if(!event.latitude || !event.longitude) return;
-
-    try{
-      const origin = await this.locationService.getCurrentPosition();
-      if(!origin) return;
-
-      const traffic =await this.trafficService.getEventTraffic(event,origin);
-      if(traffic) event.traffic = traffic;
-
-    }catch (error){
-      console.warn('No se pudo calcular el trafico del evento.')
-    }
-
+  retryLocation() {
+    if (!this.event) return;
+    void this.loadTraffic(this.event);
   }
 
+  private async loadTraffic(event: EventModel): Promise<void> {
+    if (!event.latitude || !event.longitude) return;
+
+    try {
+      const origin = await this.locationService.getCurrentPosition();
+      if (!origin) {
+        this.locationAvailable.set(false);
+        return;
+      }
+
+      this.locationAvailable.set(true);
+      const traffic = await this.trafficService.getEventTraffic(event, origin);
+      if (traffic) event.traffic = traffic;
+    } catch (error) {
+      console.warn('No se pudo calcular el tráfico del evento:', error);
+      this.locationAvailable.set(false);
+    }
+  }
 }

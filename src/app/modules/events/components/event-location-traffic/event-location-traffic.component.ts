@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, output } from '@angular/core';
 import { addIcons } from 'ionicons';
 import {
   alertOutline,
@@ -19,6 +19,8 @@ import { EventMapComponent } from 'src/app/shared/components/event-map/event-map
 })
 export class EventLocationTrafficComponent implements OnInit {
   @Input({ required: true }) event!: EventModel;
+  @Input() locationAvailable: boolean =true;
+  @Output() retryLocation = new EventEmitter<void>();
 
   alertIcon = alertOutline;
   navigateIcon = navigateOutline;
