@@ -185,6 +185,15 @@ export const routes: Routes = [
             (m) => m.EventsMapPage
           ),
       },
+      {
+        path: 'admin/settings',
+        canActivate: [permissionGuard],
+        data: {permission: 'admin.settings'},
+        loadComponent: () =>
+          import('./modules/admin/pages/app-settings/app-settings.page').then(
+            (m) => m.AppSettingsPage
+          ),
+      },
     ],
   },
 

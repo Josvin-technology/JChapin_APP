@@ -1,0 +1,99 @@
+<ion-content [fullscreen]="true" [scrollY]="true">
+ <main
+   class="mx-auto flex w-full max-w-md flex-col gap-5 px-4"
+   style="
+     padding-top: calc(1rem + env(safe-area-inset-top, 0px));
+     padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
+   "
+ >
+   <!-- Encabezado -->
+   <div class="flex items-center gap-3">
+     <button
+       (click)="goBack()"
+       type="button"
+       class="grid h-10 w-10 shrink-0 place-items-center !rounded-full border border-neutral-200 bg-white text-neutral-700 shadow-sm transition active:scale-95"
+     >
+       <ion-icon name="chevron-back" class="text-lg"></ion-icon>
+     </button>
+     <div>
+       <h1 class="text-xl font-bold tracking-tight text-neutral-800">
+         Configuración
+       </h1>
+       <p class="text-xs text-neutral-500">
+         Valores globales que usa toda la app
+       </p>
+     </div>
+   </div>
+
+
+   @if (loading()) {
+   <div class="flex justify-center py-12">
+     <ion-spinner name="crescent" class="text-primary"></ion-spinner>
+   </div>
+   } @else {
+   <form [formGroup]="form" (ngSubmit)="save()" class="flex flex-col gap-5">
+     <div class="flex flex-col gap-1.5">
+       <label class="text-sm font-semibold text-neutral-700">
+         Radio de búsqueda de eventos cercanos (km)
+       </label>
+       <input
+         type="number"
+         formControlName="nearbyRadiusKm"
+         min="1"
+         class="w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-800 focus:border-primary focus:outline-none"
+       />
+       <p class="text-xs text-neutral-500">
+         Usado por "Eventos cercanos" y el mapa de eventos.
+       </p>
+     </div>
+
+
+     <div class="flex flex-col gap-1.5">
+       <label class="text-sm font-semibold text-neutral-700">
+         Capacidad que exige permiso municipal
+       </label>
+       <input
+         type="number"
+         formControlName="permitCapacityThreshold"
+         min="1"
+         class="w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-800 focus:border-primary focus:outline-none"
+       />
+       <p class="text-xs text-neutral-500">
+         Eventos con más cupo que esto pasan a revisión aunque su categoría no lo exija.
+       </p>
+     </div>
+
+
+     <div class="flex flex-col gap-1.5">
+       <label class="text-sm font-semibold text-neutral-700">
+         Días de anticipación para cancelar/reprogramar
+       </label>
+       <input
+         type="number"
+         formControlName="cancellationDeadlineDays"
+         min="0"
+         class="w-full rounded-xl border border-neutral-200 bg-white px-4 py-3 text-sm text-neutral-800 focus:border-primary focus:outline-none"
+       />
+       <p class="text-xs text-neutral-500">
+         Un organizador no puede cancelar/reprogramar ni un usuario cancelar su ticket dentro de esta ventana.
+       </p>
+     </div>
+
+
+     <button
+       type="submit"
+       [disabled]="saving()"
+       class="flex items-center justify-center gap-2 !rounded-full bg-primary px-4 py-3 text-sm font-semibold text-white shadow-sm transition active:scale-95 disabled:opacity-60"
+     >
+       <ion-icon name="save-outline" class="text-lg"></ion-icon>
+       {{ saving() ? 'Guardando...' : 'Guardar cambios' }}
+     </button>
+   </form>
+   }
+ </main>
+</ion-content>
+
+
+
+
+

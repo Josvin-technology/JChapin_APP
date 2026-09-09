@@ -36,8 +36,7 @@ import {
   peopleOutline,
   qrCodeOutline,
   statsChartOutline,
-  ticketOutline,
-} from 'ionicons/icons';
+  ticketOutline, settingsOutline } from 'ionicons/icons';
 import { ProfileRoleSwitcherComponent } from '../../components/profile-role-switcher/profile-role-switcher.component';
 import { ProfileMenuItemComponent } from '../../components/profile-menu-item/profile-menu-item.component';
 import { RouterLink } from '@angular/router';
@@ -107,20 +106,7 @@ export class ProfilePage implements OnInit {
   baseMenuActions = BASE_MENU_ACTIONS;
 
   constructor() {
-    addIcons({
-      createOutline,
-      calendarOutline,
-      heartOutline,
-      ticketOutline,
-      addOutline,
-      statsChartOutline,
-      checkmarkCircleOutline,
-      clipboardOutline,
-      documentTextOutline,
-      peopleOutline,
-      chevronForwardOutline,
-      qrCodeOutline,
-    });
+    addIcons({createOutline,peopleOutline,chevronForwardOutline,settingsOutline,heartOutline,ticketOutline,calendarOutline,addOutline,statsChartOutline,clipboardOutline,checkmarkCircleOutline,documentTextOutline,qrCodeOutline,});
 
     effect(() => {
       if (!this.canRoleSwitch()) {
