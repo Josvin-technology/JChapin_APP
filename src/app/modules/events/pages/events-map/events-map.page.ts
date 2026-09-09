@@ -17,9 +17,10 @@ import {
  chevronForwardOutline
 } from 'ionicons/icons';
 import { GoogleMap, MapCircle, MapMarker } from '@angular/google-maps';
+import { AppSettingsService } from 'src/app/core/services/app-settings-service';
 
 
-const RADIUS_KM = 15;
+const DEFAULT_RADIUS_KM = 15;
 const RECENT_DAYS = 30;
 
 
@@ -52,6 +53,7 @@ export class EventsMapPage implements OnInit, OnDestroy {
  private mapsLoader = inject(GoogleMapsLoaderService);
  private locationService = inject(LocationService);
  private eventsService = inject(EventsService);
+ private appSettings = inject(AppSettingsService);
 
 
  hasApiKey = this.mapsLoader.hasApiKey;
@@ -60,6 +62,7 @@ export class EventsMapPage implements OnInit, OnDestroy {
  loadingPosition = signal(false);
  loadingPins = signal(false);
  locationDenied = signal(false);
+ nearbyRadiusKm = signal(DEFAULT_RADIUS_KM);
 
 
  userPosition = signal<Coordinates | null>(null);
@@ -77,7 +80,7 @@ export class EventsMapPage implements OnInit, OnDestroy {
 
 
  zoom = signal(13);
- radiusMeters = RADIUS_KM * 1000;
+ radiusMeters = DEFAULT_RADIUS_KM * 1000;
 
 
  mapOptions: google.maps.MapOptions = {
@@ -126,6 +129,9 @@ export class EventsMapPage implements OnInit, OnDestroy {
      }
    }
    await this.loadNearbyEvents();
+
+   const settings = await this.appSettings.getSettings();
+   this.nearbyRadiusKm.set(settings.nearbyRadiusKm);
  }
 
 
@@ -139,6 +145,9 @@ export class EventsMapPage implements OnInit, OnDestroy {
  async loadNearbyEvents() {
    this.loadingPosition.set(true);
    this.locationDenied.set(false);
+
+   const {nearbyRadiusKm} = await this.appSettings.getSettings();
+   this.radiusMeters = nearbyRadiusKm * 1000;
    try {
      const pos = await this.locationService.getCurrentPosition();
      if (!pos) {
@@ -155,7 +164,7 @@ export class EventsMapPage implements OnInit, OnDestroy {
      const nearbyPins = await this.eventsService.getNearbyEventsForMap(
        pos.lat,
        pos.lng,
-       RADIUS_KM,
+       nearbyRadiusKm,
        RECENT_DAYS
      );
      this.pins.set(nearbyPins);

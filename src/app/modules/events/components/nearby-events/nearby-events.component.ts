@@ -6,8 +6,7 @@ import { EventsService } from 'src/app/core/services/events-service';
 import { LocationService } from 'src/app/core/services/location-service';
 import { IonIcon } from '@ionic/angular/standalone';
 import { RouterLink } from '@angular/router';
-
-const NEARBY_RADIUS_KM = 15;
+import { AppSettingsService } from 'src/app/core/services/app-settings-service';
 
 @Component({
   selector: 'app-nearby-events',
@@ -18,6 +17,7 @@ const NEARBY_RADIUS_KM = 15;
 export class NearbyEventsComponent implements OnInit {
   private eventsService = inject(EventsService);
   private locationService = inject(LocationService);
+  private appSettings = inject(AppSettingsService);
 
   events = signal<EventModel[]>([]);
   loading = signal(true);
@@ -36,11 +36,13 @@ export class NearbyEventsComponent implements OnInit {
       const pos = await this.locationService.getCurrentPosition();
       if (!pos) return;
 
+      const settings = await this.appSettings.getSettings();
+
       this.events.set(
         await this.eventsService.getNearbyEvents(
           pos.lat,
           pos.lng,
-          NEARBY_RADIUS_KM
+          settings.nearbyRadiusKm
         )
       );
     } catch (error) {

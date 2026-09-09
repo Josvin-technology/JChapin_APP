@@ -5,8 +5,9 @@ import { AuthService } from './auth-service';
 import { StorageService } from './storage-service';
 import { EventModel, EventStatus } from '../models/event.model';
 import { MapEventPin } from '../models/map-event.model';
+import { AppSettingsService } from './app-settings-service';
 
-const PERMIT_CAPACITY_THRESHOLD = 500;
+
 const MESES_CORTOS = [
   'ENE',
   'FEB',
@@ -120,14 +121,16 @@ export class EventsService {
   private auth = inject(AuthService);
   private storage = inject(StorageService);
   private reviewService = inject(ReviewService);
+  private appSettings = inject(AppSettingsService);
 
   async createEvent(input: CreateEventInput): Promise<string> {
     const userId = this.auth.user()?.id;
     if (!userId) throw new Error('Usuario no autenticado');
 
     const category = await this.resolveCategoryId(input.categorySlug);
+    const settings = await this.appSettings.getSettings();
     const requiresPermit =
-      category.requires_permit || input.capacity > PERMIT_CAPACITY_THRESHOLD;
+      category.requires_permit || input.capacity > settings.permitCapacityThreshold;
     const status = requiresPermit ? 'pending_review' : 'published';
 
     // Insertar evento en la base de datos
@@ -339,7 +342,7 @@ export class EventsService {
   async getNearbyEvents(
     lat: number,
     lng: number,
-    radiusKm = 15
+    radiusKm: number,
   ): Promise<EventModel[]> {
     const { data, error } = await this.supabaseClient.rpc('nearby_events', {
       p_lat: lat,
@@ -359,7 +362,7 @@ export class EventsService {
   async getNearbyEventsForMap(
     lat: number,
     lng: number,
-    radiusKm = 15,
+    radiusKm: number,
     recentDays = 30
   ): Promise<MapEventPin[]> {
     const { data, error } = await this.supabaseClient.rpc('nearby_events_map', {
