@@ -1,246 +1,207 @@
 <ion-content [fullscreen]="false" [scrollY]="true">
-  <main
-    class="w-full max-w-md mx-auto px-4 flex flex-col gap-5"
-    style="
-      padding-top: calc(1.25rem + env(safe-area-inset-top, 0px));
-      padding-bottom: calc(8rem + env(safe-area-inset-bottom, 0px));
-    "
-  >
-    <!-- Header -->
-    <div class="flex items-center gap-3">
-      <button
-        (click)="goBack()"
-        class="w-10 h-10 rounded-full flex items-center justify-center bg-white border border-gray-200/80 shadow-sm text-gray-700 active:scale-95 transition-transform"
-      >
-        <ion-icon name="chevron-back-outline" class="text-xl"></ion-icon>
-      </button>
+ <main
+   class="w-full max-w-md mx-auto px-4 flex flex-col gap-5"
+   style="
+     padding-top: calc(1.25rem + env(safe-area-inset-top, 0px));
+     padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+   "
+ >
+   <!-- Header -->
+   <div class="flex items-center gap-3">
+     <button
+       (click)="goBack()"
+       class="w-10 h-10 rounded-full flex items-center justify-center bg-white border border-gray-200/80 shadow-sm text-gray-700 active:scale-95 transition-transform"
+     >
+       <ion-icon name="chevron-back-outline" class="text-xl"></ion-icon>
+     </button>
+     <div class="flex-1 min-w-0">
+       <h1
+         class="text-2xl font-extrabold text-gray-900 tracking-tight leading-tight"
+       >
+         Mis eventos
+       </h1>
+       <p class="text-xs text-gray-500 font-medium">
+         Gestiona tus eventos y su estado
+       </p>
+     </div>
+     <a
+       routerLink="/events-create"
+       class="w-10 h-10 rounded-full flex items-center justify-center bg-emerald-800 text-white shadow-md active:scale-95 transition-transform"
+     >
+       <ion-icon name="add-outline" class="text-2xl"></ion-icon>
+     </a>
+   </div>
 
-      <div class="flex-1 min-w-0">
-        <h1
-          class="text-2xl font-extrabold text-gray-900 tracking-tight leading-tight"
-        >
-          Mis eventos
-        </h1>
 
-        <p class="text-xs text-gray-500 font-medium">
-          Gestiona tus eventos y su estado
-        </p>
-      </div>
+   <!-- Filtros por Estado: Distribución fija de 2x2 sin ScrollBar -->
+   <div class="grid grid-cols-3 gap-2 w-full">
+     @for (filter of filters; track filter.value) {
+     <div
+       (click)="selectedFilter.set(filter.value)"
+       role="button"
+       tabindex="0"
+       class="cursor-pointer select-none flex items-center justify-between px-3 py-2 !rounded-xl text-xs font-bold transition-all border w-full"
+       [class.bg-emerald-800]="selectedFilter() === filter.value"
+       [class.text-white]="selectedFilter() === filter.value"
+       [class.border-emerald-800]="selectedFilter() === filter.value"
+       [class.shadow-sm]="selectedFilter() === filter.value"
+       [class.bg-gray-100]="selectedFilter() !== filter.value"
+       [class.text-gray-600]="selectedFilter() !== filter.value"
+       [class.border-transparent]="selectedFilter() !== filter.value"
+     >
+       <span class="truncate leading-none">{{ filter.label }}</span>
 
-      <a
-        routerLink="/events-create"
-        class="w-10 h-10 rounded-full flex items-center justify-center bg-emerald-800 text-white shadow-md active:scale-95 transition-transform"
-      >
-        <ion-icon name="add-outline" class="text-2xl"></ion-icon>
-      </a>
-    </div>
 
-    <!-- Filtros por Estado -->
-    <div class="grid grid-cols-3 gap-2 w-full">
-      @for (filter of filters; track filter.value) {
-      <div
-        (click)="selectedFilter.set(filter.value)"
-        role="button"
-        tabindex="0"
-        class="cursor-pointer select-none flex items-center justify-between px-3 py-2 !rounded-xl text-xs font-bold transition-all border w-full"
-        [class.bg-emerald-800]="selectedFilter() === filter.value"
-        [class.text-white]="selectedFilter() === filter.value"
-        [class.border-emerald-800]="selectedFilter() === filter.value"
-        [class.shadow-sm]="selectedFilter() === filter.value"
-        [class.bg-gray-100]="selectedFilter() !== filter.value"
-        [class.text-gray-600]="selectedFilter() !== filter.value"
-        [class.border-transparent]="selectedFilter() !== filter.value"
-      >
-        <span class="truncate leading-none"> {{ filter.label }} </span>
+       <span
+         class="inline-flex items-center justify-center px-1.5 py-0.5 !rounded-full text-[10px] font-black leading-none shrink-0"
+         [class.bg-emerald-700]="selectedFilter() === filter.value"
+         [class.text-emerald-100]="selectedFilter() === filter.value"
+         [class.bg-gray-200]="selectedFilter() !== filter.value"
+         [class.text-gray-600]="selectedFilter() !== filter.value"
+       >
+         {{ countFor(filter.value) }}
+       </span>
+     </div>
+     }
+   </div>
 
-        <span
-          class="inline-flex items-center justify-center px-1.5 py-0.5 !rounded-full text-[10px] font-black leading-none shrink-0"
-          [class.bg-emerald-700]="selectedFilter() === filter.value"
-          [class.text-emerald-100]="selectedFilter() === filter.value"
-          [class.bg-gray-200]="selectedFilter() !== filter.value"
-          [class.text-gray-600]="selectedFilter() !== filter.value"
-        >
-          {{ countFor(filter.value) }}
-        </span>
-      </div>
-      }
-    </div>
 
-    <!-- Contenido -->
-    @if (loading()) {
+   <!-- Contenido -->
+   @if (loading()) {
+   <div class="flex justify-center py-12">
+     <ion-spinner name="crescent" class="text-emerald-800"></ion-spinner>
+   </div>
+   } @else if (filteredEvents().length === 0) {
+   <div
+     class="flex flex-col items-center py-12 gap-3 text-center bg-white rounded-3xl border border-gray-100 p-6 shadow-sm"
+   >
+     <span class="text-5xl">📭</span>
+     <p class="text-sm font-bold text-gray-700">
+       No tienes eventos en esta categoría
+     </p>
+     <a
+       routerLink="/events-create"
+       class="mt-2 inline-flex items-center gap-2 rounded-full bg-emerald-800 px-5 py-2.5 text-xs font-semibold text-white shadow-sm active:scale-95 transition-transform"
+     >
+       <ion-icon name="add-outline" class="text-lg"></ion-icon>
+       Crear evento
+     </a>
+   </div>
+   } @else {
+   <section class="flex flex-col gap-4">
+     @for (event of filteredEvents(); track event.id) {
+     <div
+       class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
+     >
+       <a
+         [routerLink]="['/events', event.id]"
+         class="block active:opacity-90 transition-opacity"
+       >
+         <div class="flex gap-3.5 p-3.5">
+           <img
+             [src]="event.image"
+             [alt]="event.title"
+             class="w-20 h-20 rounded-xl object-cover flex-shrink-0 bg-gray-100"
+           />
+           <div class="flex-1 min-w-0 flex flex-col justify-between">
+             <div>
+               <h3
+                 class="text-sm font-bold text-gray-900 leading-snug line-clamp-2"
+               >
+                 {{ event.title }}
+               </h3>
+               <p
+                 class="text-[11px] font-medium text-gray-500 mt-1 line-clamp-1"
+               >
+                 {{ event.month }} {{ event.day }} · {{ event.time }}
+               </p>
+               <p
+                 class="text-[11px] font-medium text-gray-400 mt-0.5 line-clamp-1"
+               >
+                 📍 {{ event.location }}
+               </p>
+             </div>
 
-    <!-- Loading -->
-    <div class="flex justify-center py-12">
-      <ion-spinner name="crescent" class="text-emerald-800"></ion-spinner>
-    </div>
 
-    } @else if (filteredEvents().length === 0) {
+             <div class="flex items-center justify-between mt-2 pt-1">
+               <span
+                 class="inline-flex items-center gap-1 text-[11px] font-medium text-gray-500"
+               >
+                 <ion-icon name="people-outline" class="text-sm"></ion-icon>
+                 @if(event.attendees?.capacity){ {{ event.attendees?.capacity
+                 ?? 0 }} cupos }@else { Abierto, sin cupo }
+               </span>
 
-    <!-- Sin eventos -->
-    <div
-      class="flex flex-col items-center py-12 gap-3 text-center bg-white rounded-3xl border border-gray-100 p-6 shadow-sm"
-    >
-      <span class="text-5xl">📭</span>
 
-      <p class="text-sm font-bold text-gray-700">
-        No tienes eventos en esta categoría
-      </p>
+               <span
+                 class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap"
+                 [ngClass]="statusMeta(event.status).classes"
+               >
+                 {{ statusMeta(event.status).label }}
+               </span>
+             </div>
+           </div>
+         </div>
+       </a>
 
-      <a
-        routerLink="/events-create"
-        class="mt-2 inline-flex items-center gap-2 rounded-full bg-emerald-800 px-5 py-2.5 text-xs font-semibold text-white shadow-sm active:scale-95 transition-transform"
-      >
-        <ion-icon name="add-outline" class="text-lg"></ion-icon>
-        Crear evento
-      </a>
-    </div>
 
-    } @else {
+       <!-- Banners inferiores según el estado -->
+       @if (event.status === 'rejected') {
+       <div
+         class="flex items-center gap-2 bg-rose-50/80 px-3.5 py-2.5 text-[11px] font-medium text-rose-700 border-t border-rose-100"
+       >
+         <ion-icon
+           name="alert-circle-outline"
+           class="text-base shrink-0"
+         ></ion-icon>
+         <span>Rechazado: revisa los requisitos y vuelve a enviarlo.</span>
+       </div>
+       } @else if (event.status === 'pending_review') {
+       <a
+         [routerLink]="['/events-mine', event.id, 'documents']"
+         class="flex items-center justify-between gap-2 bg-amber-50/80 px-3.5 py-2.5 text-[11px] font-medium text-amber-800 border-t border-amber-100 active:bg-amber-100 transition-colors"
+       >
+         <span class="inline-flex items-center gap-2">
+           <ion-icon
+             name="alert-circle-outline"
+             class="text-base shrink-0 text-amber-600"
+           ></ion-icon>
+           En revisión: sube los documentos requeridos
+         </span>
+         <ion-icon name="chevron-forward-outline" class="text-xs"></ion-icon>
+       </a>
+       } @else if(event.status === 'published') {
+       @if(event.attendees?.capacity){
 
-    <!-- Lista de eventos -->
-    <section class="flex flex-col gap-4 pb-4">
-      @for (event of filteredEvents(); track event.id) {
 
-      <!-- Tarjeta del evento -->
-      <div
-        class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden"
-      >
-        <!-- Información principal -->
-        <a
-          [routerLink]="['/events', event.id]"
-          class="block active:opacity-90 transition-opacity"
-        >
-          <div class="flex gap-3.5 p-3.5">
-            <!-- Imagen -->
-            <img
-              [src]="event.image"
-              [alt]="event.title"
-              class="w-20 h-20 rounded-xl object-cover flex-shrink-0 bg-gray-100"
-            />
-
-            <!-- Información -->
-            <div class="flex-1 min-w-0 flex flex-col justify-between">
-              <div>
-                <!-- Título -->
-                <h3
-                  class="text-sm font-bold text-gray-900 leading-snug line-clamp-2"
-                >
-                  {{ event.title }}
-                </h3>
-
-                <!-- Fecha y hora -->
-                <p
-                  class="text-[11px] font-medium text-gray-500 mt-1 line-clamp-1"
-                >
-                  {{ event.month }} {{ event.day }} · {{ event.time }}
-                </p>
-
-                <!-- Ubicación -->
-                <p
-                  class="text-[11px] font-medium text-gray-400 mt-0.5 line-clamp-1"
-                >
-                  📍 {{ event.location }}
-                </p>
-              </div>
-
-              <!-- Cupos y estado -->
-              <div class="flex items-center justify-between mt-2 pt-1">
-                <!-- Capacidad -->
-                <span
-                  class="inline-flex items-center gap-1 text-[11px] font-medium text-gray-500"
-                >
-                  <ion-icon name="people-outline" class="text-sm"></ion-icon>
-
-                  {{ event.attendees?.capacity ?? 0 }} cupos
-                </span>
-
-                <!-- Estado -->
-                <span
-                  class="px-2.5 py-0.5 rounded-full text-[10px] font-semibold whitespace-nowrap"
-                  [ngClass]="statusMeta(event.status).classes"
-                >
-                  {{ statusMeta(event.status).label }}
-                </span>
-              </div>
-            </div>
-          </div>
-        </a>
-
-        <!-- Banners inferiores según el estado -->
-
-        @if (event.status === 'rejected') {
-
-        <!-- Rechazado -->
-        <div
-          class="flex items-center gap-2 bg-rose-50/80 px-3.5 py-2.5 text-[11px] font-medium text-rose-700 border-t border-rose-100"
-        >
-          <ion-icon
-            name="alert-circle-outline"
-            class="text-base shrink-0"
-          ></ion-icon>
-
-          <span> Rechazado: revisa los requisitos y vuelve a enviarlo. </span>
-        </div>
-
-        } @else if (event.status === 'pending_review') {
-
-        <!-- En revisión -->
-        <a
-          [routerLink]="[
-                  '/events-mine',
-                  event.id,
-                  'documents'
-                ]"
-          class="flex items-center justify-between gap-2 bg-amber-50/80 px-3.5 py-2.5 text-[11px] font-medium text-amber-800 border-t border-amber-100 active:bg-amber-100 transition-colors"
-        >
-          <span class="inline-flex items-center gap-2">
-            <ion-icon
-              name="alert-circle-outline"
-              class="text-base shrink-0 text-amber-600"
-            ></ion-icon>
-
-            En revisión: sube los documentos requeridos
-          </span>
-
-          <ion-icon name="chevron-forward-outline" class="text-xs"></ion-icon>
-        </a>
-
-        } @else if (event.status === 'published') {
-
-        <!-- Evento publicado -->
-        <div class="flex border-t border-gray-100">
-          <!-- Validar tickets -->
-          <a
-            [routerLink]="['/validation', event.id]"
-            class="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 text-xs font-semibold text-emerald-800 hover:bg-emerald-50/50 active:bg-emerald-50 transition-colors"
-          >
-            <ion-icon name="qr-code-outline" class="text-base"></ion-icon>
-
-            Validar tickets
-          </a>
-
-          <!-- Validadores -->
-          <a
-            [routerLink]="[
-                    '/events-mine',
-                    event.id,
-                    'validators'
-                  ]"
-            class="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 text-xs font-semibold text-gray-600 border-l border-gray-100 hover:bg-gray-50 active:bg-gray-100 transition-colors"
-          >
-            <ion-icon
-              name="shield-checkmark-outline"
-              class="text-base"
-            ></ion-icon>
-
-            Validadores
-          </a>
-        </div>
-
-        }
-      </div>
-      }
-    </section>
-    }
-  </main>
+       <div class="flex border-t border-gray-100">
+         <a
+           [routerLink]="['/validation', event.id]"
+           class="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 text-xs font-semibold text-emerald-800 hover:bg-emerald-50/50 active:bg-emerald-50 transition-colors"
+         >
+           <ion-icon name="qr-code-outline" class="text-base"></ion-icon>
+           Validar tickets
+         </a>
+         <a
+           [routerLink]="['/events-mine', event.id, 'validators']"
+           class="flex-1 flex items-center justify-center gap-2 py-2.5 px-3 text-xs font-semibold text-gray-600 border-l border-gray-100 hover:bg-gray-50 active:bg-gray-100 transition-colors"
+         >
+           <ion-icon
+             name="shield-checkmark-outline"
+             class="text-base"
+           ></ion-icon>
+           Validadores
+         </a>
+       </div>
+       } }
+     </div>
+     }
+   </section>
+   }
+ </main>
 </ion-content>
+
+
+
+
+

@@ -3,10 +3,9 @@ import { inject, Injectable } from '@angular/core';
 import { SupabaseService } from './supabase-service';
 import { AuthService } from './auth-service';
 import { StorageService } from './storage-service';
+import { AppSettingsService } from './app-settings-service';
 import { EventModel, EventStatus } from '../models/event.model';
 import { MapEventPin } from '../models/map-event.model';
-import { AppSettingsService } from './app-settings-service';
-
 
 const MESES_CORTOS = [
   'ENE',
@@ -58,6 +57,7 @@ interface EventRow {
   description: string | null;
   event_date: string | null;
   event_time: string | null;
+  event_end_time: string | null;
   location: string | null;
   city: string | null;
   price: number;
@@ -66,6 +66,7 @@ interface EventRow {
   popular: boolean;
   featured: boolean;
   capacity: number | null;
+  requires_tickets: boolean;
   organizer: { name: string; avatar_url: string | null } | null;
   event_categories: { categories: { name: string } | null }[] | null;
   latitude: number | null;
@@ -87,12 +88,20 @@ interface NearbyMapRow {
 
 // Campos que se piden a Supabase para armar un EventModel (evita traer columnas de más).
 const EVENT_SELECT = `
-id, title, status, description, event_date, event_time, location, city,
+id, title, status, description, event_date, event_time, event_end_time, location, city,
 latitude, longitude,
-price, price_label, image_url, popular, featured, capacity,
+price, price_label, image_url, popular, featured, capacity, requires_tickets,
 organizer:profiles!organizer_id ( name, avatar_url ),
 event_categories ( categories ( name ) )
 `;
+
+// Respuesta de las funciones RPC de estado (cancel_event, reschedule_event,
+// cancel_my_ticket): nunca lanzan excepción, siempre devuelven {ok, reason}.
+export interface RpcResult {
+  ok: boolean;
+  reason: string;
+  [key: string]: unknown;
+}
 
 export interface CreateEventInput {
   title: string;
@@ -105,7 +114,8 @@ export interface CreateEventInput {
   categorySlug: string; // slug de la categoría seleccionada (ej. 'musica')
   eventType: 'publico' | 'privado' | 'registro';
   price: number;
-  capacity: number;
+  requiresTickets: boolean;
+  capacity: number | null; // null cuando requiresTickets = false (evento abierto, sin límite)
   coverImage: File | null;
   latitude: number | null;
   longitude: number | null;
@@ -129,8 +139,15 @@ export class EventsService {
 
     const category = await this.resolveCategoryId(input.categorySlug);
     const settings = await this.appSettings.getSettings();
+    // El chequeo de capacidad solo aplica a eventos públicos: son los que
+    // convocan gente sin control de invitación y por eso les toca revisión
+    // municipal por aforo. Privados y con registro previo quedan exentos de
+    // este chequeo (igual entran a revisión si la categoría ya lo exige).
     const requiresPermit =
-      category.requires_permit || input.capacity > settings.permitCapacityThreshold;
+      category.requires_permit ||
+      (input.eventType === 'publico' &&
+        input.requiresTickets &&
+        (input.capacity ?? 0) > settings.permitCapacityThreshold);
     const status = requiresPermit ? 'pending_review' : 'published';
 
     // Insertar evento en la base de datos
@@ -148,7 +165,8 @@ export class EventsService {
         city: input.city || null,
         price: input.price,
         price_label: input.price === 0 ? 'Gratis' : `Q${input.price}`,
-        capacity: input.capacity,
+        capacity: input.requiresTickets ? input.capacity : null,
+        requires_tickets: input.requiresTickets,
         latitude: input.latitude,
         longitude: input.longitude,
         requires_permit: requiresPermit,
@@ -234,7 +252,11 @@ export class EventsService {
       .order('event_date', { ascending: true });
 
     if (error) throw error;
-    return (data as unknown as EventRow[]).map((row) => this.toEventModel(row));
+    const events = (data as unknown as EventRow[]).map((row) =>
+      this.toEventModel(row)
+    );
+    await this.attachAttendeeCounts(events);
+    return events;
   }
 
   // Devuelve un evento publicado por id (para la página de detalle), o null.
@@ -248,8 +270,41 @@ export class EventsService {
     if (error) throw error;
 
     const event = this.toEventModel(data as unknown as EventRow);
+    await this.attachAttendeeCounts([event]);
     event.reviews = await this.reviewService.getReviewsSumary(id);
     return event;
+  }
+
+  // Consulta el agregado de "van" por evento (event_attendee_counts, ver
+  // 0017_optional_tickets.sql) y lo aplica sobre attendees.current. Se usa una
+  // vista en vez de leer event_registrations directo porque su RLS no deja
+  // ver filas de otros usuarios/eventos ajenos (ver comentario en la migración).
+  private async attachAttendeeCounts(events: EventModel[]): Promise<void> {
+    const ids = events.map((e) => e.id).filter((id): id is string => !!id);
+    if (!ids.length) return;
+
+    const { data, error } = await this.supabaseClient
+      .from('event_attendee_counts')
+      .select('event_id, going_count')
+      .in('event_id', ids);
+
+    if (error) {
+      console.error('Error al obtener conteo de asistentes:', error);
+      return;
+    }
+
+    const counts = new Map(
+      (data as { event_id: string; going_count: number }[]).map((row) => [
+        row.event_id,
+        row.going_count,
+      ])
+    );
+
+    events.forEach((event) => {
+      if (event.id && event.attendees) {
+        event.attendees.current = counts.get(event.id) ?? 0;
+      }
+    });
   }
 
   // Convierte una fila de la base al modelo de presentación (fechas legibles,
@@ -274,6 +329,7 @@ export class EventsService {
       city: row.city ?? '',
       rawDate: row.event_date ?? undefined,
       rawTime: row.event_time ?? undefined,
+      rawEndTime: row.event_end_time ?? undefined,
       latitude: row.latitude ?? undefined,
       longitude: row.longitude ?? undefined,
       price: priceLabel,
@@ -281,11 +337,12 @@ export class EventsService {
       popular: row.popular,
       featured: row.featured,
       image: row.image_url ?? FALLBACK_IMAGE,
+      requiresTickets: row.requires_tickets,
       organizer: {
         name: row.organizer?.name ?? 'Organizador',
         avatar: row.organizer?.avatar_url ?? 'assets/images/user-avatar.jpg',
       },
-      attendees: { current: 0, capacity: row.capacity ?? 0 },
+      attendees: { current: 0, capacity: row.capacity },
     };
   }
 
@@ -334,15 +391,20 @@ export class EventsService {
       .select(EVENT_SELECT)
       .eq('organizer_id', userId)
       .order('event_date', { ascending: true });
+
     if (error) throw error;
 
-    return (data as unknown as EventRow[]).map((row) => this.toEventModel(row));
+    const events = (data as unknown as EventRow[]).map((row) =>
+      this.toEventModel(row)
+    );
+    await this.attachAttendeeCounts(events);
+    return events;
   }
 
   async getNearbyEvents(
     lat: number,
     lng: number,
-    radiusKm: number,
+    radiusKm: number
   ): Promise<EventModel[]> {
     const { data, error } = await this.supabaseClient.rpc('nearby_events', {
       p_lat: lat,
@@ -381,7 +443,8 @@ export class EventsService {
 
   private toMapEventPin(row: NearbyMapRow): MapEventPin {
     const date = this.longDate(row.event_date);
-    const dateLabel = row.status === 'completed' ? `Completado el ${date}` : `Prox: ${date}`;
+    const dateLabel =
+      row.status === 'completed' ? `Completado el ${date}` : `Prox: ${date}`;
 
     return {
       id: row.id,
@@ -396,5 +459,34 @@ export class EventsService {
       rawDate: row.event_date ?? undefined,
       rawTime: row.event_time ?? undefined,
     };
+  }
+
+  // Cancela un evento publicado (organizador dueño o admin). Cascada del lado
+  // del server: los tickets activos pasan a 'cancelled' y se notifica a
+  // quienes tenían ticket o habían marcado "voy" (ver cancel_event en
+  // 0018_event_cancellation.sql).
+  async cancelEvent(eventId: string): Promise<RpcResult> {
+    const { data, error } = await this.supabaseClient.rpc('cancel_event', {
+      p_event_id: eventId,
+    });
+    if (error) throw error;
+    return data as RpcResult;
+  }
+
+  // Reprograma un evento publicado (misma autorización/ventana que cancelar).
+  async rescheduleEvent(
+    eventId: string,
+    newDate: string,
+    newStartTime: string,
+    newEndTime: string | null
+  ): Promise<RpcResult> {
+    const { data, error } = await this.supabaseClient.rpc('reschedule_event', {
+      p_event_id: eventId,
+      p_new_date: newDate,
+      p_new_start_time: newStartTime,
+      p_new_end_time: newEndTime,
+    });
+    if (error) throw error;
+    return data as RpcResult;
   }
 }

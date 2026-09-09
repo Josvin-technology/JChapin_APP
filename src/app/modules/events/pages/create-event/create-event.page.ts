@@ -1,3 +1,4 @@
+import { PlaceSuggestion } from './../../../../core/services/geocoding-service';
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -16,8 +17,6 @@ import {
   IonDatetime,
   IonDatetimeButton,
   IonModal,
-  IonToolbar,
-  IonTitle,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -37,10 +36,7 @@ import { Router } from '@angular/router';
 import { FooterStepComponent } from '../../components/footer-step/footer-step.component';
 import { EventsService } from 'src/app/core/services/events-service';
 import { EventMapComponent } from 'src/app/shared/components/event-map/event-map.component';
-import {
-  GeocodingService,
-  PlaceSuggestion,
-} from 'src/app/core/services/geocoding-service';
+import { GeocodingService } from 'src/app/core/services/geocoding-service';
 import { LocationService } from 'src/app/core/services/location-service';
 
 interface Occurrence {
@@ -70,8 +66,6 @@ const STEP_CONTROLS: Record<number, string[]> = {
   styleUrls: ['./create-event.page.scss'],
   standalone: true,
   imports: [
-    IonTitle,
-    IonToolbar,
     IonModal,
     IonIcon,
     IonContent,
@@ -151,6 +145,7 @@ export class CreateEventPage implements OnInit {
       categoryId: ['', Validators.required],
       eventType: ['publico', Validators.required],
       price: [0, [Validators.required, Validators.min(0)]],
+      requiresTickets: [false],
       capacity: [100, [Validators.required, Validators.min(1)]],
       coverImage: [null],
       latitude: [null],
@@ -165,6 +160,20 @@ export class CreateEventPage implements OnInit {
         } else if (this.occurrences.length === 0) {
           this.addOccurrence();
         }
+      });
+
+    this.eventForm
+      .get('requiresTickets')
+      ?.valueChanges.subscribe((requiresTickets: boolean) => {
+        const capacity = this.ctrl('capacity');
+        if (requiresTickets) {
+          capacity?.setValidators([Validators.required, Validators.min(1)]);
+          if (!capacity?.value) capacity?.setValue(100);
+        } else {
+          capacity?.clearValidators();
+          capacity?.setValue(null);
+        }
+        capacity?.updateValueAndValidity();
       });
   }
 
@@ -298,7 +307,6 @@ export class CreateEventPage implements OnInit {
 
     this.submitting.set(true);
     const v = this.eventForm.value;
-
     try {
       await this.eventsService.createEvent({
         title: v.title,
@@ -311,7 +319,8 @@ export class CreateEventPage implements OnInit {
         categorySlug: v.categoryId,
         eventType: v.eventType,
         price: Number(v.price),
-        capacity: Number(v.capacity),
+        requiresTickets: v.requiresTickets,
+        capacity: v.requiresTickets ? Number(v.capacity) : null,
         coverImage: v.coverImage,
         latitude: v.latitude,
         longitude: v.longitude,
@@ -339,6 +348,28 @@ export class CreateEventPage implements OnInit {
       position: 'top',
     });
     await toast.present();
+  }
+
+  OnImageSelected(evet: Event) {
+    const input = evet.target as HTMLInputElement;
+
+    if (!input.files?.length) {
+      return;
+    }
+
+    const file = input.files[0];
+
+    this.eventForm.patchValue({
+      coverImage: file,
+    });
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      this.coverPreview = reader.result as string;
+    };
+
+    reader.readAsDataURL(file);
   }
 
   onDateTimeChange(control: 'date' | 'startTime' | 'endTime', event: Event) {

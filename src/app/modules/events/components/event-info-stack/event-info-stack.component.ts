@@ -27,6 +27,10 @@ export class EventInfoStackComponent implements OnInit {
 
   ngOnInit() {}
 
+  get hasCapacity(): boolean {
+    return !!this.event.attendees?.capacity;
+  }
+
   get attendeePercent(): number {
     const attendees = this.event.attendees;
 

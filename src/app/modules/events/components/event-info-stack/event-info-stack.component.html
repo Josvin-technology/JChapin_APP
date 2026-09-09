@@ -67,6 +67,7 @@
         <ion-icon [icon]="peopleIcon" class="text-xl"></ion-icon>
       </div>
       <div>
+        @if (hasCapacity) {
         <h3 class="font-bold text-neutral">
           {{ event.attendees?.current }} de
           {{ event.attendees?.capacity }} asistentes
@@ -74,13 +75,21 @@
         <p class="text-sm text-neutral/60">
           {{ attendeePercent }}% de capacidad
         </p>
+        } @else {
+        <h3 class="font-bold text-neutral">
+          {{ event.attendees?.current }} van a asistir
+        </h3>
+        <p class="text-sm text-neutral/60">Evento abierto, sin cupo limitado</p>
+        }
       </div>
     </div>
+    @if (hasCapacity) {
     <div class="h-1.5 overflow-hidden rounded-full bg-surface-dim/60">
       <div
         class="h-full rounded-full bg-primary"
         [style.width.%]="attendeePercent"
       ></div>
     </div>
+    }
   </article>
 </section>

@@ -3,7 +3,6 @@ import { Router, RouterLink } from '@angular/router';
 import { IonIcon, ToastController } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { ticketOutline } from 'ionicons/icons';
-import { CanDirective } from 'src/app/core/directives/can-directive';
 import { EventModel } from 'src/app/core/models/event.model';
 import { AuthService } from 'src/app/core/services/auth-service';
 import { PermissionService } from 'src/app/core/services/permission-service';
@@ -29,16 +28,27 @@ export class ReservationBarComponent implements OnInit {
   canReserve = this.permission.canReserve;
   ticketIcon = ticketOutline;
   reserving = signal(false);
+  alreadyRsvped = signal(false);
 
   constructor() {
     addIcons({ ticketOutline });
   }
 
-  ngOnInit() {}
+  ngOnInit() {
+    if (
+      !this.event?.requiresTickets &&
+      this.auth.isLoggedIn() &&
+      this.event?.id
+    ) {
+      this.ticketService
+        .hasRsvp(this.event.id)
+        .then((has) => this.alreadyRsvped.set(has));
+    }
+  }
 
   get eventHasPassed(): boolean {
-    return(
-      this.event?.status === 'completed' || 
+    return (
+      this.event?.status === 'completed' ||
       this.event?.status === 'cancelled' ||
       isPastEvent(this.event?.rawDate, this.event?.rawTime)
     );
@@ -46,7 +56,7 @@ export class ReservationBarComponent implements OnInit {
 
   private async presentToast(
     message: string,
-    color: 'success' | 'danger' | 'warning' = 'success',
+    color: 'success' | 'danger' | 'warning' = 'success'
   ) {
     const toast = await this.toastController.create({
       message,
@@ -67,13 +77,21 @@ export class ReservationBarComponent implements OnInit {
   async reserveTicket() {
     if (!this.event?.id || this.reserving()) return;
 
-    if(this.eventHasPassed){
-      await this.presentToast('este evento ya fue finalizado, no se puede reservar', 'warning');
+    if (this.eventHasPassed) {
+      await this.presentToast(
+        'Este evento ya fue finalizado, no se puede reservar',
+        'warning'
+      );
       return;
     }
 
     if (!this.auth.isLoggedIn()) {
       this.router.navigate(['/login']);
+      return;
+    }
+
+    if (!this.event.requiresTickets) {
+      await this.rsvp();
       return;
     }
 
@@ -92,9 +110,29 @@ export class ReservationBarComponent implements OnInit {
       console.error('Error al reservar ticket:', error);
       this.presentToast(
         'Error al reservar ticket. Intenta nuevamente.',
-        'danger',
+        'danger'
       );
       this.reserving.set(false);
+    } finally {
+      this.reserving.set(false);
+    }
+  }
+
+  // Evento sin ticket obligatorio: solo marca "voy", sin QR ni navegación.
+  private async rsvp() {
+    if (!this.event?.id) return;
+
+    this.reserving.set(true);
+    try {
+      await this.ticketService.rsvpOnly(this.event.id);
+      this.alreadyRsvped.set(true);
+      await this.presentToast('¡Anotado! Te esperamos.', 'success');
+    } catch (error) {
+      console.error('Error al registrar asistencia:', error);
+      await this.presentToast(
+        'No se pudo registrar tu asistencia. Intenta de nuevo.',
+        'danger'
+      );
     } finally {
       this.reserving.set(false);
     }
