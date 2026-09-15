@@ -1,23 +1,39 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
+  ActionSheetButton,
+  ActionSheetController,
+  AlertController,
   IonContent,
+  IonDatetime,
+  IonDatetimeButton,
   IonIcon,
+  IonModal,
   IonSpinner,
   IonToolbar,
   IonHeader,
   IonTitle,
+  ToastController,
 } from '@ionic/angular/standalone';
 import { EventModel, EventStatus } from 'src/app/core/models/event.model';
-import { EventsService } from 'src/app/core/services/events-service';
+import { EventsService, RpcResult } from 'src/app/core/services/events-service';
+import { AppSettingsService } from 'src/app/core/services/app-settings-service';
+import { isPastCancellationDeadline } from 'src/app/core/utils/date-format';
 import { Router, RouterLink } from '@angular/router';
 import { addIcons } from 'ionicons';
 import {
   addOutline,
   alertCircleOutline,
+  calendarOutline,
   chevronBackOutline,
   chevronForwardOutline,
-  peopleOutline, qrCodeOutline, shieldCheckmarkOutline } from 'ionicons/icons';
+  closeCircleOutline,
+  ellipsisHorizontalOutline,
+  peopleOutline,
+  qrCodeOutline,
+  shieldCheckmarkOutline,
+} from 'ionicons/icons';
 
 // Filtro del segmento superior: 'all' + los estados del evento.
 type EventFilter = 'all' | EventStatus;
@@ -41,23 +57,38 @@ const STATUS_META: Record<EventStatus, { label: string; classes: string }> = {
   styleUrls: ['./my-events.page.scss'],
   standalone: true,
   imports: [
-    IonTitle,
-    IonHeader,
-    IonToolbar,
     RouterLink,
     IonIcon,
     IonSpinner,
     IonContent,
+    IonModal,
+    IonDatetime,
+    IonDatetimeButton,
     CommonModule,
+    ReactiveFormsModule,
   ],
 })
 export class MyEventsPage implements OnInit {
   private enventsService = inject(EventsService);
   private router = inject(Router);
+  private appSettings = inject(AppSettingsService);
+  private actionSheetController = inject(ActionSheetController);
+  private alertController = inject(AlertController);
+  private toastController = inject(ToastController);
+  private fb = inject(FormBuilder);
 
   loading = signal(true);
   events = signal<EventModel[]>([]);
-  selectedFilter = signal<EventFilter>('all');
+  selectedFilter = signal<EventFilter>('published');
+  cancellationDeadlineDays = signal<number | null>(null);
+
+  reschedulingEvent = signal<EventModel | null>(null);
+  reschedulingSaving = signal(false);
+  rescheduleForm = this.fb.group({
+    date: ['', Validators.required],
+    startTime: ['', Validators.required],
+    endTime: ['', Validators.required],
+  });
 
   filters: { value: EventFilter; label: string }[] = [
     { value: 'all', label: 'Todos' },
@@ -75,12 +106,28 @@ export class MyEventsPage implements OnInit {
   });
 
   constructor() {
-    addIcons({chevronBackOutline,addOutline,peopleOutline,alertCircleOutline,chevronForwardOutline,qrCodeOutline,shieldCheckmarkOutline,});
+    addIcons({
+      chevronBackOutline,
+      addOutline,
+      peopleOutline,
+      alertCircleOutline,
+      chevronForwardOutline,
+      qrCodeOutline,
+      shieldCheckmarkOutline,
+      ellipsisHorizontalOutline,
+      calendarOutline,
+      closeCircleOutline,
+    });
   }
 
   async ngOnInit() {
     try {
-      this.events.set(await this.enventsService.getMyEvents());
+      const [events, settings] = await Promise.all([
+        this.enventsService.getMyEvents(),
+        this.appSettings.getSettings(),
+      ]);
+      this.events.set(events);
+      this.cancellationDeadlineDays.set(settings.cancellationDeadlineDays);
     } catch (error) {
       console.error('No se pudieron cargar los eventos: ', error);
     } finally {
@@ -100,5 +147,181 @@ export class MyEventsPage implements OnInit {
 
   goBack() {
     this.router.navigate(['/profile']);
+  }
+
+  // Chequeo de la ventana de cancelación/reprogramación del lado del cliente
+  // (solo para no mostrar la opción cuando ya es tarde; la fuente de verdad
+  // sigue siendo el RPC, que revalida todo en el server).
+  canManageDeadline(event: EventModel): boolean {
+    const days = this.cancellationDeadlineDays();
+    if (days === null) return true;
+    return !isPastCancellationDeadline(event.rawDate, event.rawTime, days);
+  }
+
+  async openManageEvent(event: EventModel) {
+    if (!event.id) return;
+    const canManage = this.canManageDeadline(event);
+
+    const buttons: ActionSheetButton[] = [
+      {
+        text: 'Validar tickets',
+        icon: 'qr-code-outline',
+        handler: () => this.router.navigate(['/validation', event.id]),
+      },
+      {
+        text: 'Validadores',
+        icon: 'shield-checkmark-outline',
+        handler: () =>
+          this.router.navigate(['/events-mine', event.id, 'validators']),
+      },
+      {
+        text: 'Cambiar fecha',
+        icon: 'calendar-outline',
+        disabled: !canManage,
+        handler: () => this.openReschedule(event),
+      },
+      {
+        text: 'Cancelar evento',
+        icon: 'close-circle-outline',
+        role: 'destructive',
+        disabled: !canManage,
+        handler: () => this.confirmCancelEvent(event),
+      },
+      { text: 'Cerrar', role: 'cancel' },
+    ];
+
+    const sheet = await this.actionSheetController.create({
+      header: event.title,
+      subHeader: canManage
+        ? undefined
+        : `Ya no se puede cancelar ni reprogramar (menos de ${this.cancellationDeadlineDays()} día(s) para el evento)`,
+      buttons,
+    });
+    await sheet.present();
+  }
+
+  async confirmCancelEvent(event: EventModel) {
+    if (!event.id) return;
+    const alert = await this.alertController.create({
+      header: 'Cancelar evento',
+      message: `¿Seguro que quieres cancelar "${event.title}"? Se avisará a quienes ya reservaron o marcaron asistencia.`,
+      buttons: [
+        { text: 'No', role: 'cancel' },
+        {
+          text: 'Sí, cancelar',
+          role: 'destructive',
+          handler: () => this.doCancelEvent(event.id!),
+        },
+      ],
+    });
+    await alert.present();
+  }
+
+  private async doCancelEvent(eventId: string) {
+    try {
+      const result = await this.enventsService.cancelEvent(eventId);
+      if (!result.ok) {
+        await this.presentToast(this.rpcErrorMessage(result.reason), 'danger');
+        return;
+      }
+      await this.presentToast('Evento cancelado', 'success');
+      this.events.update((list) =>
+        list.map((e) => (e.id === eventId ? { ...e, status: 'cancelled' } : e))
+      );
+    } catch (error) {
+      console.error('Error al cancelar evento:', error);
+      await this.presentToast('No se pudo cancelar el evento', 'danger');
+    }
+  }
+
+  openReschedule(event: EventModel) {
+    this.rescheduleForm.reset({
+      date: (event.rawDate ?? '').slice(0, 10),
+      startTime: (event.rawTime ?? '').slice(0, 5), // '07:00:00' -> '07:00'
+      endTime: (event.rawEndTime ?? '').slice(0, 5), // '12:30:00' -> '12:30'
+    });
+    this.reschedulingEvent.set(event);
+  }
+
+  closeReschedule() {
+    this.reschedulingEvent.set(null);
+  }
+
+  rescheduleCtrl(name: string) {
+    return this.rescheduleForm.get(name);
+  }
+
+  onRescheduleDateTimeChange(
+    control: 'date' | 'startTime' | 'endTime',
+    domEvent: Event
+  ) {
+    const value = (domEvent as CustomEvent).detail?.value as string;
+    const normalized =
+      control === 'date'
+        ? value?.slice(0, 10)
+        : value?.match(/(\d{2}:\d{2})/)?.[1] ?? '';
+    this.rescheduleCtrl(control)?.setValue(normalized);
+  }
+
+  timeToIso(time: string | null | undefined): string | null {
+    if (!time) return null;
+    const [h, m] = time.split(':');
+    if (!h || !m) return null;
+    return `2000-01-01T${h.padStart(2, '0')}:${m.padStart(2, '0')}:00`;
+  }
+
+  async submitReschedule() {
+    const event = this.reschedulingEvent();
+    if (
+      !event?.id ||
+      this.rescheduleForm.invalid ||
+      this.reschedulingSaving()
+    ) {
+      this.rescheduleForm.markAllAsTouched();
+      return;
+    }
+
+    this.reschedulingSaving.set(true);
+    try {
+      const v = this.rescheduleForm.value;
+      const result = await this.enventsService.rescheduleEvent(
+        event.id,
+        v.date!,
+        v.startTime!,
+        v.endTime || null
+      );
+      if (!result.ok) {
+        await this.presentToast(this.rpcErrorMessage(result.reason), 'danger');
+        return;
+      }
+      await this.presentToast('Evento reprogramado', 'success');
+      this.closeReschedule();
+      this.events.set(await this.enventsService.getMyEvents());
+    } catch (error) {
+      console.error('Error al reprogramar evento:', error);
+      await this.presentToast('No se pudo reprogramar el evento', 'danger');
+    } finally {
+      this.reschedulingSaving.set(false);
+    }
+  }
+
+  private rpcErrorMessage(reason: string): string {
+    const messages: Record<string, string> = {
+      not_authorized: 'No tienes permiso para esta acción.',
+      invalid_status: 'El evento ya no está publicado.',
+      past_deadline: `Ya no se puede modificar: falta menos de ${this.cancellationDeadlineDays()} día(s) para el evento.`,
+      not_found: 'No se encontró el evento.',
+    };
+    return messages[reason] ?? 'No se pudo completar la acción.';
+  }
+
+  private async presentToast(message: string, color: 'success' | 'danger') {
+    const toast = await this.toastController.create({
+      message,
+      duration: 3000,
+      color,
+      position: 'top',
+    });
+    await toast.present();
   }
 }

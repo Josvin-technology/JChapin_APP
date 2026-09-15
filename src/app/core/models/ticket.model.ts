@@ -7,6 +7,7 @@ export interface  TicketModel {
     type?: string;
     status?: string;
     eventDate?: string; // fecha del evento  YYYY-MM-DD
+    eventTime?: string; // Hora del evento  HH:MM
     date?: string; 
     month?: string;
     day?: string;

@@ -34,6 +34,12 @@ interface TicketRow {
   } | null;
 }
 
+export interface RpcResult {
+  ok: boolean;
+  reason: string;
+  [key: string]: unknown;
+}
+
 const TICKET_SELECT = `
 id, event_id, code, type, status,
 event:events!event_id ( title,image_url, event_date, event_time, location, image_url )
@@ -62,6 +68,7 @@ export class TicketsService {
       status: row.status,
       date: longDate(row.event?.event_date),
       eventDate: row.event?.event_date ?? undefined,
+      eventTime: row.event?.event_time ?? undefined,
       month: monthShort(row.event?.event_date),
       day: dayNumber(row.event?.event_date),
       time: formatTime(row.event?.event_time),
@@ -212,5 +219,15 @@ export class TicketsService {
 
     if (error) throw error;
     return data ? this.toTicketModel(data as unknown as TicketRow) : null;
+  }
+
+  // Liberar un ticket (cambiar status a 'cancelled').
+  async cancelMyTicket(ticketId: string): Promise<RpcResult> {
+    const { data, error } = await this.supabaseClient.rpc('cancel_my_ticket', {
+      p_ticket_id: ticketId,
+    });
+
+    if (error) throw error;
+    return data as RpcResult;
   }
 }

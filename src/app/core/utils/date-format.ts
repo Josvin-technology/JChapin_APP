@@ -92,3 +92,19 @@ export function isPastEvent(
   }
   return d.getTime() < Date.now();
 }
+
+// ¿Ya estamos dentro de la ventana de "no se puede cancelar/reprogramar"?
+export function isPastCancellationDeadline(
+  rawDate: string | null | undefined,
+  rawTime: string | null | undefined,
+  deadlineDays: number
+): boolean {
+  const d = parseDate(rawDate);
+  if (!d) return false;
+  if (rawTime) {
+    const [h, m] = rawTime.split(':').map(Number);
+    d.setHours(h || 0, m || 0, 0, 0);
+  }
+  const deadline = new Date(d.getTime() - deadlineDays * 24 * 60 * 60 * 1000);
+  return Date.now() > deadline.getTime();
+}
