@@ -6,14 +6,9 @@ import {
   ActionSheetController,
   AlertController,
   IonContent,
-  IonDatetime,
-  IonDatetimeButton,
   IonIcon,
   IonModal,
   IonSpinner,
-  IonToolbar,
-  IonHeader,
-  IonTitle,
   ToastController,
 } from '@ionic/angular/standalone';
 import { EventModel, EventStatus } from 'src/app/core/models/event.model';
@@ -62,8 +57,6 @@ const STATUS_META: Record<EventStatus, { label: string; classes: string }> = {
     IonSpinner,
     IonContent,
     IonModal,
-    IonDatetime,
-    IonDatetimeButton,
     CommonModule,
     ReactiveFormsModule,
   ],
@@ -236,38 +229,15 @@ export class MyEventsPage implements OnInit {
 
   openReschedule(event: EventModel) {
     this.rescheduleForm.reset({
-      date: (event.rawDate ?? '').slice(0, 10),
-      startTime: (event.rawTime ?? '').slice(0, 5), // '07:00:00' -> '07:00'
-      endTime: (event.rawEndTime ?? '').slice(0, 5), // '12:30:00' -> '12:30'
+      date: event.rawDate ?? '',
+      startTime: event.rawTime ?? '',
+      endTime: event.rawEndTime ?? '',
     });
     this.reschedulingEvent.set(event);
   }
 
   closeReschedule() {
     this.reschedulingEvent.set(null);
-  }
-
-  rescheduleCtrl(name: string) {
-    return this.rescheduleForm.get(name);
-  }
-
-  onRescheduleDateTimeChange(
-    control: 'date' | 'startTime' | 'endTime',
-    domEvent: Event
-  ) {
-    const value = (domEvent as CustomEvent).detail?.value as string;
-    const normalized =
-      control === 'date'
-        ? value?.slice(0, 10)
-        : value?.match(/(\d{2}:\d{2})/)?.[1] ?? '';
-    this.rescheduleCtrl(control)?.setValue(normalized);
-  }
-
-  timeToIso(time: string | null | undefined): string | null {
-    if (!time) return null;
-    const [h, m] = time.split(':');
-    if (!h || !m) return null;
-    return `2000-01-01T${h.padStart(2, '0')}:${m.padStart(2, '0')}:00`;
   }
 
   async submitReschedule() {

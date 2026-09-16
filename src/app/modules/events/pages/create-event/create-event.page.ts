@@ -14,9 +14,6 @@ import {
   IonHeader,
   IonIcon,
   ToastController,
-  IonDatetime,
-  IonDatetimeButton,
-  IonModal,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -66,7 +63,6 @@ const STEP_CONTROLS: Record<number, string[]> = {
   styleUrls: ['./create-event.page.scss'],
   standalone: true,
   imports: [
-    IonModal,
     IonIcon,
     IonContent,
     IonHeader,
@@ -74,8 +70,6 @@ const STEP_CONTROLS: Record<number, string[]> = {
     FormsModule,
     FooterStepComponent,
     ReactiveFormsModule,
-    IonDatetime,
-    IonDatetimeButton,
     EventMapComponent,
   ],
 })
@@ -145,7 +139,7 @@ export class CreateEventPage implements OnInit {
       categoryId: ['', Validators.required],
       eventType: ['publico', Validators.required],
       price: [0, [Validators.required, Validators.min(0)]],
-      requiresTickets: [false],
+      requiresTickets: [true],
       capacity: [100, [Validators.required, Validators.min(1)]],
       coverImage: [null],
       latitude: [null],
@@ -370,30 +364,5 @@ export class CreateEventPage implements OnInit {
     };
 
     reader.readAsDataURL(file);
-  }
-
-  onDateTimeChange(control: 'date' | 'startTime' | 'endTime', event: Event) {
-    const value = (event as CustomEvent).detail?.value as string;
-    const normalized =
-      control === 'date'
-        ? this.normalizeDate(value)
-        : this.normalizeTime(value);
-
-    const c = this.ctrl(control);
-    c?.setValue(normalized);
-    c?.markAsTouched();
-  }
-
-  private normalizeDate(value: string): string {
-    return value ? value.slice(0, 10) : '';
-  }
-
-  private normalizeTime(value: string): string {
-    const match = value?.match(/(\d{2}:\d{2})/);
-    return match ? match[1] : '';
-  }
-
-  timeToIso(time: string | null): string | null {
-    return time ? `2000-01-01T${time}:00` : null;
   }
 }

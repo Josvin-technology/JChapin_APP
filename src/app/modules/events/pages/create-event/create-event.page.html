@@ -98,27 +98,16 @@
         [class.border-primary]="!isInvalid('date')"
         [class.border-red-500]="isInvalid('date')"
       >
-        <ion-datetime-button datetime="eventDate"></ion-datetime-button>
+        <input
+          type="date"
+          formControlName="date"
+          class="w-full h-full bg-transparent text-sm outline-none"
+        />
         <ion-icon
           name="calendar-outline"
           class="text-lg text-gray-400 flex-shrink-0"
         ></ion-icon>
       </div>
-      <ion-modal [keepContentsMounted]="true">
-        <ng-template>
-          <ion-datetime
-            id="eventDate"
-            presentation="date"
-            locale="es-GT"
-            [value]="ctrl('date')?.value || null"
-            [showDefaultButtons]="true"
-            doneText="Listo"
-            cancelText="Cancelar"
-            (ionChange)="onDateTimeChange('date',$event)"
-          >
-          </ion-datetime>
-        </ng-template>
-      </ion-modal>
       @if (isInvalid('date')) {
       <p class="text-red-600 text-xs font-semibold ml-1">
         La fecha es obligatoria.
@@ -138,26 +127,16 @@
           [class.border-primary]="!isInvalid('startTime')"
           [class.border-red-500]="isInvalid('startTime')"
         >
-          <ion-datetime-button datetime="startTime"></ion-datetime-button>
+          <input
+            type="time"
+            formControlName="startTime"
+            class="w-full h-full bg-transparent text-sm outline-none"
+          />
           <ion-icon
             name="time-outline"
             class="text-lg text-gray-400 flex-shrink-0"
           ></ion-icon>
         </div>
-        <ion-modal [keepContentsMounted]="true">
-          <ng-template>
-            <ion-datetime
-              id="startTime"
-              presentation="time"
-              locale="es-GT"
-              [value]="timeToIso(ctrl('startTime')?.value)"
-              [showDefaultButtons]="true"
-              doneText="Listo"
-              cancelText="Cancelar"
-              (ionChange)="onDateTimeChange('startTime', $event)"
-            ></ion-datetime>
-          </ng-template>
-        </ion-modal>
         @if (isInvalid('startTime')) {
         <p class="text-red-600 text-xs font-semibold ml-1">Requerido.</p>
         }
@@ -173,26 +152,16 @@
           [class.border-primary]="!isInvalid('endTime')"
           [class.border-red-500]="isInvalid('endTime')"
         >
-          <ion-datetime-button datetime="endTime"></ion-datetime-button>
+          <input
+            type="time"
+            formControlName="endTime"
+            class="w-full h-full bg-transparent text-sm outline-none"
+          />
           <ion-icon
             name="time-outline"
             class="text-lg text-gray-400 flex-shrink-0"
           ></ion-icon>
         </div>
-        <ion-modal [keepContentsMounted]="true">
-          <ng-template>
-            <ion-datetime
-              id="endTime"
-              presentation="time"
-              locale="es-GT"
-              [value]="timeToIso(ctrl('endTime')?.value)"
-              [showDefaultButtons]="true"
-              doneText="Listo"
-              cancelText="Cancelar"
-              (ionChange)="onDateTimeChange('endTime', $event)"
-            ></ion-datetime>
-          </ng-template>
-        </ion-modal>
         @if (isInvalid('endTime')) {
         <p class="text-red-600 text-xs font-semibold ml-1">Requerido.</p>
         }
@@ -633,3 +602,6 @@
   (next)="next()"
 />
 </ion-content>
+
+
+
