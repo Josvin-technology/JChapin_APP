@@ -150,6 +150,17 @@ export class EventsService {
         (input.capacity ?? 0) > settings.permitCapacityThreshold);
     const status = requiresPermit ? 'pending_review' : 'published';
 
+    let imageUrl: string | null = null;
+
+    if (input.coverImage) {
+      const extension = input.coverImage.name.split('.').pop();
+      imageUrl = await this.storage.uploadFile(
+        'events',
+        `${userId}-${Date.now()}.${extension}`,
+        input.coverImage
+      );
+    }
+
     // Insertar evento en la base de datos
     const { data: event, error: eventError } = await this.supabaseClient
       .from('events')
@@ -170,6 +181,7 @@ export class EventsService {
         latitude: input.latitude,
         longitude: input.longitude,
         requires_permit: requiresPermit,
+        image_url: imageUrl,
         status,
       })
       .select('id')
@@ -178,23 +190,6 @@ export class EventsService {
     if (eventError) throw eventError;
 
     const eventId = event.id as string;
-
-    // Subir imagen de portada si existe
-    if (input.coverImage) {
-      const extension = input.coverImage.name.split('.').pop();
-      const imageUrl = await this.storage.uploadFile(
-        'events',
-        `${eventId}.${extension}`,
-        input.coverImage
-      );
-      // Actualizar la URL de la imagen en la tabla de eventos
-      const { error: imgError } = await this.supabaseClient
-        .from('events')
-        .update({ image_url: imageUrl })
-        .eq('id', eventId);
-
-      if (imgError) throw imgError;
-    }
 
     // Insertar categoría del evento
     const { error: categoryError } = await this.supabaseClient
@@ -488,5 +483,23 @@ export class EventsService {
     });
     if (error) throw error;
     return data as RpcResult;
+  }
+
+  // Cambiar imagen de portada de un evento (organizador dueño o admin).
+  async updateEventCover(eventId: string, file: File): Promise<string> {
+    const extension = file.name.split('.').pop() ?? 'jpg';
+    const imageUrl = await this.storage.uploadFile(
+      'events',
+      `${eventId}-${Date.now()}.${extension}`,
+      file
+    );
+
+    const { data, error } = await this.supabaseClient.rpc('update_event_cover', {
+      p_event_id: eventId,
+      p_image_url: imageUrl,
+    });
+
+    if (error) throw error;
+    return imageUrl;
   }
 }

@@ -1,4 +1,12 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  computed,
+  ElementRef,
+  inject,
+  OnInit,
+  signal,
+  ViewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
@@ -25,6 +33,7 @@ import {
   chevronForwardOutline,
   closeCircleOutline,
   ellipsisHorizontalOutline,
+  imageOutline,
   peopleOutline,
   qrCodeOutline,
   shieldCheckmarkOutline,
@@ -77,6 +86,10 @@ export class MyEventsPage implements OnInit {
 
   reschedulingEvent = signal<EventModel | null>(null);
   reschedulingSaving = signal(false);
+
+  @ViewChild('coverFileInput') coverFileInput!: ElementRef<HTMLInputElement>;
+  private pendingCoverEvent: EventModel | null = null;
+  uploadingCover = signal(false);
   rescheduleForm = this.fb.group({
     date: ['', Validators.required],
     startTime: ['', Validators.required],
@@ -110,6 +123,7 @@ export class MyEventsPage implements OnInit {
       ellipsisHorizontalOutline,
       calendarOutline,
       closeCircleOutline,
+      imageOutline,
     });
   }
 
@@ -168,6 +182,11 @@ export class MyEventsPage implements OnInit {
           this.router.navigate(['/events-mine', event.id, 'validators']),
       },
       {
+        text: 'Cambiar portada',
+        icon: 'image-outline',
+        handler: () => this.changeCover(event),
+      },
+      {
         text: 'Cambiar fecha',
         icon: 'calendar-outline',
         disabled: !canManage,
@@ -191,6 +210,37 @@ export class MyEventsPage implements OnInit {
       buttons,
     });
     await sheet.present();
+  }
+
+  changeCover(event: EventModel) {
+    this.pendingCoverEvent = event;
+    this.coverFileInput.nativeElement.click();
+  }
+
+  async onCoverFileSelected(e: Event) {
+    const input = e.target as HTMLInputElement;
+    const file = input.files?.[0];
+    const event = this.pendingCoverEvent;
+    input.value = '';
+    this.pendingCoverEvent = null;
+    if (!file || !event?.id) return;
+
+    this.uploadingCover.set(true);
+    try {
+      const imageUrl = await this.enventsService.updateEventCover(
+        event.id,
+        file
+      );
+      this.events.update((list) =>
+        list.map((e) => (e.id === event.id ? { ...e, image: imageUrl } : e))
+      );
+      await this.presentToast('Portada actualizada', 'success');
+    } catch (error) {
+      console.error('Error al actualizar la portada:', error);
+      await this.presentToast('No se pudo actualizar la portada', 'danger');
+    } finally {
+      this.uploadingCover.set(false);
+    }
   }
 
   async confirmCancelEvent(event: EventModel) {
