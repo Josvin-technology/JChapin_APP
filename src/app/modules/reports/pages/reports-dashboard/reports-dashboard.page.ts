@@ -12,8 +12,7 @@ import {
  peopleOutline,
  pricetagOutline,
  refreshOutline,
- ticketOutline,
-} from 'ionicons/icons';
+ ticketOutline, barChartOutline, calendarOutline, filterOutline, timeOutline, pieChartOutline, gridOutline, statsChartOutline, trophyOutline, shieldCheckmarkOutline } from 'ionicons/icons';
 import { ReportsService } from 'src/app/core/services/reports-service';
 import { ReportsExportService } from 'src/app/core/services/reports-export-service';
 import { ReportDateRange, ReportsDashboard } from 'src/app/core/models/report.model';
@@ -110,17 +109,7 @@ export class ReportsDashboardPage implements OnInit {
 
 
  constructor() {
-   addIcons({
-     chevronBack,
-     refreshOutline,
-     alertCircleOutline,
-     cashOutline,
-     ticketOutline,
-     peopleOutline,
-     documentTextOutline,
-     pricetagOutline,
-     downloadOutline,
-   });
+   addIcons({chevronBack,barChartOutline,refreshOutline,calendarOutline,filterOutline,alertCircleOutline,downloadOutline,cashOutline,ticketOutline,timeOutline,pieChartOutline,gridOutline,statsChartOutline,peopleOutline,trophyOutline,shieldCheckmarkOutline,documentTextOutline,pricetagOutline,});
  }
 
 
