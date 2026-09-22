@@ -36,7 +36,7 @@ import {
   peopleOutline,
   qrCodeOutline,
   statsChartOutline,
-  ticketOutline, settingsOutline } from 'ionicons/icons';
+  ticketOutline, settingsOutline, chevronBack, refreshOutline, alertCircleOutline, downloadOutline, pricetagOutline, cashOutline } from 'ionicons/icons';
 import { ProfileRoleSwitcherComponent } from '../../components/profile-role-switcher/profile-role-switcher.component';
 import { ProfileMenuItemComponent } from '../../components/profile-menu-item/profile-menu-item.component';
 import { RouterLink } from '@angular/router';
@@ -106,7 +106,7 @@ export class ProfilePage implements OnInit {
   baseMenuActions = BASE_MENU_ACTIONS;
 
   constructor() {
-    addIcons({createOutline,peopleOutline,chevronForwardOutline,settingsOutline,heartOutline,ticketOutline,calendarOutline,addOutline,statsChartOutline,clipboardOutline,checkmarkCircleOutline,documentTextOutline,qrCodeOutline,});
+    addIcons({chevronBack,refreshOutline,alertCircleOutline,downloadOutline,pricetagOutline,cashOutline,ticketOutline,documentTextOutline,peopleOutline,createOutline,chevronForwardOutline,settingsOutline,heartOutline,calendarOutline,addOutline,statsChartOutline,clipboardOutline,checkmarkCircleOutline,qrCodeOutline,});
 
     effect(() => {
       if (!this.canRoleSwitch()) {

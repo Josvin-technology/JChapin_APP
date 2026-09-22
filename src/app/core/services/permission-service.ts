@@ -19,6 +19,7 @@ export class PermissionService {
     'roles.switch': () => this.auth.isLoggedIn() && this.auth.hasRole('admin'),
     'admin.users': () => this.auth.isLoggedIn() && this.auth.hasRole('admin'),
     'admin.settings': () => this.auth.isLoggedIn() && this.auth.hasRole('admin'),
+    'reports.view': () => this.auth.isLoggedIn() && (this.auth.hasRole('admin') || this.auth.hasRole('organizer')),
   };
 
   can(permission: AppPermission): boolean {
@@ -33,4 +34,5 @@ export class PermissionService {
   canRoleSwitch = computed(() => this.can('roles.switch'));
   canAdminUsers = computed(() => this.can('admin.users'));
   canAdminSettings = computed(() => this.can('admin.settings'));
+  canViewReports = computed(() => this.can('reports.view'));
 }

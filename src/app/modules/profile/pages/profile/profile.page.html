@@ -69,6 +69,29 @@
       ></ion-icon>
     </a>
 
+    <!-- Reportes: organizador ve los suyos, admin ve todos -->
+    <a
+      *appCan="'reports.view'"
+      routerLink="/reports"
+      class="flex items-center gap-4 !rounded-[1.35rem] border border-surface-dim/70 bg-white p-5 shadow-sm"
+    >
+      <span
+        class="grid h-12 w-12 place-items-center rounded-full bg-primary/10 text-primary"
+      >
+        <ion-icon name="stats-chart-outline" class="text-2xl"></ion-icon>
+      </span>
+      <span class="min-w-0 flex-1">
+        <strong class="block text-sm text-neutral">Reportes</strong>
+        <span class="text-xs text-neutral/65"
+          >Eventos, tickets, asistencia y aprobaciones</span
+        >
+      </span>
+      <ion-icon
+        name="chevron-forward-outline"
+        class="text-lg text-neutral/45"
+      ></ion-icon>
+    </a>
+
     <!-- Configuración de la app -->
     <a
       *appCan="'admin.settings'"

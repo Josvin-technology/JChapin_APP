@@ -188,11 +188,20 @@ export const routes: Routes = [
       {
         path: 'admin/settings',
         canActivate: [permissionGuard],
-        data: {permission: 'admin.settings'},
+        data: { permission: 'admin.settings' },
         loadComponent: () =>
           import('./modules/admin/pages/app-settings/app-settings.page').then(
             (m) => m.AppSettingsPage
           ),
+      },
+      {
+        path: 'reports',
+        canActivate: [permissionGuard],
+        data: {permission: 'reports.view'},
+        loadComponent: () =>
+          import(
+            './modules/reports/pages/reports-dashboard/reports-dashboard.page'
+          ).then((m) => m.ReportsDashboardPage),
       },
     ],
   },

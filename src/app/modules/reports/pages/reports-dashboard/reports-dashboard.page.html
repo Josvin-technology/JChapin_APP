@@ -1,0 +1,300 @@
+<ion-content [fullscreen]="true" [scrollY]="true">
+ <main
+   class="mx-auto flex w-full max-w-md flex-col gap-5 px-4 mb-24"
+   style="
+     padding-top: calc(1rem + env(safe-area-inset-top, 0px));
+     padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
+   "
+ >
+   <!-- Header principal -->
+   <div class="flex items-center justify-between gap-3 pt-2">
+     <button
+       (click)="goBack()"
+       type="button"
+       class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-700 shadow-sm transition active:scale-95"
+     >
+       <ion-icon name="chevron-back" class="text-xl"></ion-icon>
+     </button>
+
+
+     <div class="min-w-0 flex-1 text-center">
+       <h1 class="text-lg font-bold tracking-tight text-neutral-800">Reportes</h1>
+       @if (dashboard(); as d) {
+         <p class="text-xs font-medium text-neutral-500">{{ scopeLabel() }}</p>
+       }
+     </div>
+
+
+     <button
+       (click)="load()"
+       type="button"
+       [disabled]="loading()"
+       class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-neutral-200 bg-white text-neutral-700 shadow-sm transition active:scale-95 disabled:opacity-50"
+     >
+       <ion-icon name="refresh-outline" class="text-xl"></ion-icon>
+     </button>
+   </div>
+
+
+   <!-- Filtro de rango de fechas -->
+   <section class="rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm">
+     <h3 class="mb-3 text-xs font-bold uppercase tracking-wider text-neutral-500">Filtrar por fecha</h3>
+    
+     <div class="grid grid-cols-2 gap-3 mb-4">
+       <div class="flex flex-col gap-1.5">
+         <label class="text-xs font-semibold text-neutral-600">Desde</label>
+         <input
+           type="date"
+           [value]="fromDate()"
+           (change)="fromDate.set($any($event.target).value)"
+           class="w-full h-10 rounded-xl border border-neutral-200 bg-neutral-50/50 px-3 text-xs font-medium text-neutral-800 focus:border-primary focus:bg-white focus:outline-none transition-all"
+         />
+       </div>
+       <div class="flex flex-col gap-1.5">
+         <label class="text-xs font-semibold text-neutral-600">Hasta</label>
+         <input
+           type="date"
+           [value]="toDate()"
+           (change)="toDate.set($any($event.target).value)"
+           class="w-full h-10 rounded-xl border border-neutral-200 bg-neutral-50/50 px-3 text-xs font-medium text-neutral-800 focus:border-primary focus:bg-white focus:outline-none transition-all"
+         />
+       </div>
+     </div>
+
+
+     <div class="flex items-center gap-2">
+       <button
+         (click)="load()"
+         type="button"
+         [disabled]="loading()"
+         class="flex-1 h-10 flex items-center justify-center rounded-xl bg-primary text-xs font-bold text-white shadow-sm transition-all active:scale-[0.98] disabled:opacity-50"
+       >
+         Aplicar filtro
+       </button>
+       <button
+         (click)="clearFilters()"
+         type="button"
+         [disabled]="loading()"
+         class="h-10 px-4 flex items-center justify-center rounded-xl border border-neutral-200 bg-neutral-50 text-xs font-semibold text-neutral-600 transition-all active:scale-[0.98] disabled:opacity-50"
+       >
+         Quitar
+       </button>
+     </div>
+   </section>
+
+
+   @if (loading()) {
+     <div class="flex justify-center py-12">
+       <ion-spinner name="crescent" class="text-primary"></ion-spinner>
+     </div>
+   } @else if (error()) {
+     <div class="flex flex-col items-center gap-2 rounded-2xl border border-red-100 bg-red-50/50 p-6 text-center">
+       <ion-icon name="alert-circle-outline" class="text-3xl text-red-500"></ion-icon>
+       <p class="text-xs font-medium text-red-600">{{ error() }}</p>
+     </div>
+   } @else if (dashboard(); as d) {
+    
+     <!-- Botón Exportar CSV -->
+     <button
+       (click)="exportCsv()"
+       type="button"
+       class="w-full h-12 flex items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary/5 text-xs font-bold text-primary shadow-xs transition-all active:scale-[0.98]"
+     >
+       <ion-icon name="download-outline" class="text-base"></ion-icon>
+       Exportar Reporte a CSV
+     </button>
+
+
+     <!-- Tarjetas de Resumen (KPIs) -->
+     <section class="grid grid-cols-2 gap-3">
+       <div class="rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm flex flex-col justify-between">
+         <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-primary/10 text-primary mb-2">
+           <ion-icon name="pricetag-outline" class="text-lg"></ion-icon>
+         </div>
+         <div>
+           <p class="text-2xl font-black tracking-tight text-neutral-800">{{ d.events.total }}</p>
+           <p class="text-[11px] font-medium text-neutral-500">Eventos Totales</p>
+         </div>
+       </div>
+
+
+       <div class="rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm flex flex-col justify-between">
+         <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600 mb-2">
+           <ion-icon name="cash-outline" class="text-lg"></ion-icon>
+         </div>
+         <div>
+           <p class="text-2xl font-black tracking-tight text-neutral-800">Q{{ d.tickets.totalRevenue | number: '1.0-2' }}</p>
+           <p class="text-[11px] font-medium text-neutral-500">Ingresos Totales</p>
+         </div>
+       </div>
+
+
+       <div class="rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm flex flex-col justify-between">
+         <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-500/10 text-blue-600 mb-2">
+           <ion-icon name="ticket-outline" class="text-lg"></ion-icon>
+         </div>
+         <div>
+           <p class="text-2xl font-black tracking-tight text-neutral-800">{{ totalTickets() }}</p>
+           <p class="text-[11px] font-medium text-neutral-500">Tickets emitidos</p>
+         </div>
+       </div>
+
+
+       <div class="rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm flex flex-col justify-between">
+         <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 mb-2">
+           <ion-icon name="document-text-outline" class="text-lg"></ion-icon>
+         </div>
+         <div>
+           <p class="text-2xl font-black tracking-tight text-neutral-800">{{ avgTurnaroundLabel() }}</p>
+           <p class="text-[11px] font-medium text-neutral-500">Prom. de revisión</p>
+         </div>
+       </div>
+     </section>
+
+
+     <!-- Eventos por estado -->
+     <section class="rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm">
+       <h3 class="mb-4 text-xs font-bold uppercase tracking-wider text-neutral-500">Eventos por estado</h3>
+       <div class="flex flex-col gap-3">
+         @for (row of d.events.byStatus; track row.status) {
+           <div>
+             <div class="mb-1.5 flex items-center justify-between text-xs font-semibold">
+               <span class="text-neutral-700">{{ eventStatusLabel(row.status) }}</span>
+               <span class="text-neutral-500 font-mono">{{ row.count }}</span>
+             </div>
+             <div class="h-2 w-full overflow-hidden rounded-full bg-neutral-100">
+               <div class="h-full rounded-full bg-primary transition-all duration-500" [style.width.%]="barWidth(row.count, d.events.byStatus)"></div>
+             </div>
+           </div>
+         } @empty {
+           <p class="text-xs text-neutral-400 text-center py-2">No hay eventos registrados</p>
+         }
+       </div>
+     </section>
+
+
+     <!-- Eventos por categoría -->
+     <section class="rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm">
+       <h3 class="mb-4 text-xs font-bold uppercase tracking-wider text-neutral-500">Eventos por categoría</h3>
+       <div class="flex flex-col gap-3">
+         @for (row of d.events.byCategory; track row.category) {
+           <div>
+             <div class="mb-1.5 flex items-center justify-between text-xs font-semibold">
+               <span class="text-neutral-700">{{ row.category }}</span>
+               <span class="text-neutral-500 font-mono">{{ row.count }}</span>
+             </div>
+             <div class="h-2 w-full overflow-hidden rounded-full bg-neutral-100">
+               <div class="h-full rounded-full bg-primary transition-all duration-500" [style.width.%]="barWidth(row.count, d.events.byCategory)"></div>
+             </div>
+           </div>
+         } @empty {
+           <p class="text-xs text-neutral-400 text-center py-2">No hay categorías con eventos</p>
+         }
+       </div>
+     </section>
+
+
+     <!-- Tickets por tipo -->
+     <section class="rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm">
+       <h3 class="mb-3 text-xs font-bold uppercase tracking-wider text-neutral-500">Tickets por tipo</h3>
+       <div class="flex flex-col divide-y divide-neutral-100">
+         @for (row of d.tickets.byType; track row.type) {
+           <div class="flex items-center justify-between py-2.5 text-xs">
+             <span class="font-semibold text-neutral-700">{{ ticketTypeLabel(row.type) }}</span>
+             <span class="font-medium text-neutral-500"><b class="text-neutral-800">{{ row.count }}</b> · Q{{ row.revenue | number: '1.0-2' }}</span>
+           </div>
+         } @empty {
+           <p class="text-xs text-neutral-400 text-center py-2">No hay tickets vendidos</p>
+         }
+       </div>
+     </section>
+
+
+     <!-- Tickets por estado -->
+     <section class="rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm">
+       <h3 class="mb-4 text-xs font-bold uppercase tracking-wider text-neutral-500">Tickets por estado</h3>
+       <div class="flex flex-col gap-3">
+         @for (row of d.tickets.byStatus; track row.status) {
+           <div>
+             <div class="mb-1.5 flex items-center justify-between text-xs font-semibold">
+               <span class="text-neutral-700">{{ ticketStatusLabel(row.status) }}</span>
+               <span class="text-neutral-500 font-mono">{{ row.count }}</span>
+             </div>
+             <div class="h-2 w-full overflow-hidden rounded-full bg-neutral-100">
+               <div class="h-full rounded-full bg-primary transition-all duration-500" [style.width.%]="barWidth(row.count, d.tickets.byStatus)"></div>
+             </div>
+           </div>
+         } @empty {
+           <p class="text-xs text-neutral-400 text-center py-2">Sin tickets registrados</p>
+         }
+       </div>
+     </section>
+
+
+     <!-- Registros de asistencia -->
+     <section class="rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm">
+       <h3 class="mb-4 text-xs font-bold uppercase tracking-wider text-neutral-500">Registros de asistencia</h3>
+       <div class="flex flex-col gap-3">
+         @for (row of d.attendance.registrationsByStatus; track row.status) {
+           <div>
+             <div class="mb-1.5 flex items-center justify-between text-xs font-semibold">
+               <span class="text-neutral-700">{{ registrationStatusLabel(row.status) }}</span>
+               <span class="text-neutral-500 font-mono">{{ row.count }}</span>
+             </div>
+             <div class="h-2 w-full overflow-hidden rounded-full bg-neutral-100">
+               <div class="h-full rounded-full bg-primary transition-all duration-500" [style.width.%]="barWidth(row.count, d.attendance.registrationsByStatus)"></div>
+             </div>
+           </div>
+         } @empty {
+           <p class="text-xs text-neutral-400 text-center py-2">No hay registros de asistencia</p>
+         }
+       </div>
+     </section>
+
+
+     <!-- Top eventos por asistencia -->
+     <section class="rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm">
+       <div class="mb-3 flex items-center gap-2">
+         <ion-icon name="people-outline" class="text-base text-primary"></ion-icon>
+         <h3 class="text-xs font-bold uppercase tracking-wider text-neutral-500">Top eventos por asistencia</h3>
+       </div>
+       <div class="flex flex-col divide-y divide-neutral-100">
+         @for (row of d.attendance.topEvents; track row.id) {
+           <div class="flex items-center justify-between py-2.5 text-xs">
+             <span class="min-w-0 flex-1 truncate font-semibold text-neutral-700 pr-2">{{ row.title }}</span>
+             <span class="font-medium text-neutral-500 shrink-0">{{ row.goingCount }}{{ row.capacity ? ' / ' + row.capacity : '' }}</span>
+           </div>
+         } @empty {
+           <p class="text-xs text-neutral-400 text-center py-2">Sin asistentes confirmados</p>
+         }
+       </div>
+     </section>
+
+
+     <!-- Aprobaciones municipales -->
+     <section class="rounded-2xl border border-neutral-100 bg-white p-4 shadow-sm">
+       <h3 class="mb-4 text-xs font-bold uppercase tracking-wider text-neutral-500">Aprobaciones municipales</h3>
+       <div class="flex flex-col gap-3">
+         @for (row of d.approvals.byStatus; track row.status) {
+           <div>
+             <div class="mb-1.5 flex items-center justify-between text-xs font-semibold">
+               <span class="text-neutral-700">{{ approvalStatusLabel(row.status) }}</span>
+               <span class="text-neutral-500 font-mono">{{ row.count }}</span>
+             </div>
+             <div class="h-2 w-full overflow-hidden rounded-full bg-neutral-100">
+               <div class="h-full rounded-full bg-primary transition-all duration-500" [style.width.%]="barWidth(row.count, d.approvals.byStatus)"></div>
+             </div>
+           </div>
+         } @empty {
+           <p class="text-xs text-neutral-400 text-center py-2">No hay solicitudes</p>
+         }
+       </div>
+     </section>
+
+
+   }
+ </main>
+</ion-content>
+
+
+
