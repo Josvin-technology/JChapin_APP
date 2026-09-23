@@ -16,7 +16,10 @@ import {
   IonContent,
   IonIcon,
   IonModal,
+  IonRefresher,
+  IonRefresherContent,
   IonSpinner,
+  RefresherCustomEvent,
   ToastController,
 } from '@ionic/angular/standalone';
 import { EventModel, EventStatus } from 'src/app/core/models/event.model';
@@ -66,6 +69,8 @@ const STATUS_META: Record<EventStatus, { label: string; classes: string }> = {
     IonSpinner,
     IonContent,
     IonModal,
+    IonRefresher,
+    IonRefresherContent,
     CommonModule,
     ReactiveFormsModule,
   ],
@@ -128,6 +133,18 @@ export class MyEventsPage implements OnInit {
   }
 
   async ngOnInit() {
+    await this.loadData();
+    this.loading.set(false);
+  }
+
+  // Pull-to-refresh: recarga sin mostrar el spinner de carga inicial para
+  // que la lista actual siga visible mientras llegan los datos nuevos.
+  async handleRefresh(event: RefresherCustomEvent) {
+    await this.loadData();
+    event.target.complete();
+  }
+
+  private async loadData() {
     try {
       const [events, settings] = await Promise.all([
         this.enventsService.getMyEvents(),
@@ -137,8 +154,6 @@ export class MyEventsPage implements OnInit {
       this.cancellationDeadlineDays.set(settings.cancellationDeadlineDays);
     } catch (error) {
       console.error('No se pudieron cargar los eventos: ', error);
-    } finally {
-      this.loading.set(false);
     }
   }
 
