@@ -2,21 +2,12 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { IonContent, IonIcon, IonHeader, IonToolbar, IonTitle } from '@ionic/angular/standalone';
+import { IonContent, IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   addOutline,
-  appsOutline,
-  barbellOutline,
-  briefcaseOutline,
-  colorPaletteOutline,
-  laptopOutline,
-  leafOutline,
   locationOutline,
-  musicalNotesOutline,
-  optionsOutline,
   peopleOutline,
-  restaurantOutline,
   searchOutline,
   timeOutline,
 } from 'ionicons/icons';
@@ -26,7 +17,6 @@ import { CanDirective } from 'src/app/core/directives/can-directive';
 
 interface ExploreCategory {
   label: string;
-  icon: string;
   value: string | null;
 }
 
@@ -35,10 +25,16 @@ interface ExploreCategory {
   templateUrl: './explore.page.html',
   styleUrls: ['./explore.page.scss'],
   standalone: true,
-  imports: [IonTitle, IonToolbar, IonHeader, CommonModule, FormsModule, RouterLink, IonContent, IonIcon, CanDirective],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    IonContent,
+    IonIcon,
+    CanDirective,
+  ],
 })
 export class ExplorePage implements OnInit {
-
   private eventService = inject(EventsService);
 
   searchQuery = signal('');
@@ -46,22 +42,25 @@ export class ExplorePage implements OnInit {
   events = signal<EventModel[]>([]);
 
   categories: ExploreCategory[] = [
-    { label: 'Todos',       icon: 'apps-outline',           value: null        },
-    { label: 'Música',      icon: 'musical-notes-outline',  value: 'Música'    },
-    { label: 'Gastronomía', icon: 'restaurant-outline',     value: 'Gastronomía' },
-    { label: 'Arte',        icon: 'color-palette-outline',  value: 'Arte'      },
-    { label: 'Deportes',    icon: 'barbell-outline',        value: 'Deportes'  },
-    { label: 'Tecnología',  icon: 'laptop-outline',         value: 'Tecnología'},
-    { label: 'Bienestar',   icon: 'leaf-outline',           value: 'Bienestar' },
-    { label: 'Comunidad',   icon: 'people-outline',         value: 'Comunidad' },
-    { label: 'Negocios',    icon: 'briefcase-outline',      value: 'Negocios'  },
+    { label: 'Todos', value: null },
+    { label: 'Música', value: 'Música' },
+    { label: 'Gastronomía', value: 'Gastronomía' },
+    { label: 'Arte', value: 'Arte' },
+    { label: 'Deportes', value: 'Deportes' },
+    { label: 'Tecnología', value: 'Tecnología' },
+    { label: 'Bienestar', value: 'Bienestar' },
+    { label: 'Comunidad', value: 'Comunidad' },
+    { label: 'Negocios', value: 'Negocios' },
   ];
 
   filteredEvents = computed<EventModel[]>(() => {
     const q = this.searchQuery().toLowerCase();
     const cat = this.activeCategory();
-    return this.events().filter(e => {
-      const matchesQuery = !q || e.title?.toLowerCase().includes(q) || e.location?.toLowerCase().includes(q);
+    return this.events().filter((e) => {
+      const matchesQuery =
+        !q ||
+        e.title?.toLowerCase().includes(q) ||
+        e.location?.toLowerCase().includes(q);
       const matchesCategory = !cat || e.category === cat;
       return matchesQuery && matchesCategory;
     });
@@ -69,21 +68,20 @@ export class ExplorePage implements OnInit {
 
   constructor() {
     addIcons({
-      searchOutline, optionsOutline, addOutline, timeOutline, locationOutline,
-      peopleOutline, appsOutline, musicalNotesOutline, restaurantOutline,
-      colorPaletteOutline, barbellOutline, laptopOutline, leafOutline,
-      briefcaseOutline,
+      searchOutline,
+      addOutline,
+      timeOutline,
+      locationOutline,
+      peopleOutline,
     });
   }
 
   async ngOnInit() {
-    try{
+    try {
       this.events.set(await this.eventService.getPublishedEvents());
+    } catch (error) {
+      console.error('Error al cargar eventos:', error);
     }
-    catch (error){
-      console.error('Error al cargar eventos', error);
-    }
-    
   }
 
   selectCategory(value: string | null) {
