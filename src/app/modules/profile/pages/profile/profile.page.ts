@@ -36,7 +36,9 @@ import {
   peopleOutline,
   qrCodeOutline,
   statsChartOutline,
-  ticketOutline, settingsOutline, chevronBack, refreshOutline, alertCircleOutline, downloadOutline, pricetagOutline, cashOutline } from 'ionicons/icons';
+  ticketOutline,
+  settingsOutline,
+} from 'ionicons/icons';
 import { ProfileRoleSwitcherComponent } from '../../components/profile-role-switcher/profile-role-switcher.component';
 import { ProfileMenuItemComponent } from '../../components/profile-menu-item/profile-menu-item.component';
 import { RouterLink } from '@angular/router';
@@ -106,7 +108,21 @@ export class ProfilePage implements OnInit {
   baseMenuActions = BASE_MENU_ACTIONS;
 
   constructor() {
-    addIcons({chevronBack,refreshOutline,alertCircleOutline,downloadOutline,pricetagOutline,cashOutline,ticketOutline,documentTextOutline,peopleOutline,createOutline,chevronForwardOutline,settingsOutline,heartOutline,calendarOutline,addOutline,statsChartOutline,clipboardOutline,checkmarkCircleOutline,qrCodeOutline,});
+    addIcons({
+      createOutline,
+      peopleOutline,
+      chevronForwardOutline,
+      settingsOutline,
+      heartOutline,
+      ticketOutline,
+      calendarOutline,
+      addOutline,
+      statsChartOutline,
+      clipboardOutline,
+      checkmarkCircleOutline,
+      documentTextOutline,
+      qrCodeOutline,
+    });
 
     effect(() => {
       if (!this.canRoleSwitch()) {
@@ -164,12 +180,15 @@ export class ProfilePage implements OnInit {
 
     try {
       const extension = file.name.split('.').pop();
-      const avatarUrl = await this.storage.uploadFile(
+      const publicUrl = await this.storage.uploadFile(
         'avatars',
         `${userId}.${extension}`,
         file
       );
-      await this.auth.updateAvatarUrl(avatarUrl);
+      // El archivo se sobrescribe en la misma ruta, así que la URL pública no
+      // cambia y el navegador/CDN seguiría mostrando la imagen cacheada. El
+      // parámetro ?v= fuerza una URL nueva en cada subida.
+      await this.auth.updateAvatarUrl(`${publicUrl}?v=${Date.now()}`);
     } catch {
       const toast = await this.toastController.create({
         message: 'No se pudo actualizar tu foto de perfil. Intenta de nuevo.',
