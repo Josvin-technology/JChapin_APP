@@ -7,7 +7,8 @@ export function resolveNotificationRoute(
       // Organizador → directo a subir los documentos pedidos.
       return eventId ? `/events-mine/${eventId}/documents` : '/events-mine';
     case 'event_pending_review':
-      // Aprobador → su bandeja de revisión.
+    case 'event_document_uploaded':
+      // Aprobador → su bandeja de revisión (evento nuevo o documento subido).
       return '/approvals';
     default:
       // approved / rejected / reminder / recommendation → detalle del evento.

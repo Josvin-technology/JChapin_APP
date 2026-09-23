@@ -24,7 +24,7 @@ import {
 } from 'ionicons/icons';
 import { ApprovalService } from 'src/app/core/services/approval-service';
 
-type ApprovalFilter = 'pending' | 'review' | 'resolved';
+type ApprovalFilter = 'review' | 'resolved';
 type ApprovalStatus = ApprovalRequest['status'];
 
 // Metadatos de presentación por estado de la solicitud.
@@ -59,12 +59,11 @@ export class ApprovalsPage implements OnInit {
 
   loading = signal(true);
   requests = signal<ApprovalRequest[]>([]);
-  selectedFilter = signal<ApprovalFilter>('pending');
+  selectedFilter = signal<ApprovalFilter>('review');
   processingId = signal<string | null>(null);
   expandedId = signal<string | null>(null);
 
   filters: { value: ApprovalFilter; label: string }[] = [
-    { value: 'pending', label: 'Pendientes' },
     { value: 'review', label: 'En revisión' },
     { value: 'resolved', label: 'Resueltas' },
   ];
@@ -98,7 +97,7 @@ export class ApprovalsPage implements OnInit {
       console.error('No se pudo cargar las solicitudes: ', error);
       await this.presentToast(
         'No se piuderon cargar las solicitudes.',
-        'danger',
+        'danger'
       );
     } finally {
       this.loading.set(false);
@@ -108,7 +107,9 @@ export class ApprovalsPage implements OnInit {
   private matchesFilter(req: ApprovalRequest, filter: ApprovalFilter): boolean {
     if (filter === 'resolved')
       return req.status === 'approved' || req.status === 'rejected';
-    return req.status === filter;
+    // 'En revisión' agrupa todo lo que falta resolver: las solicitudes recién
+    // creadas ('pending') y las que ya tienen documentos pedidos ('review').
+    return req.status === 'pending' || req.status === 'review';
   }
 
   private async presentToast(message: string, color: 'success' | 'danger') {
@@ -146,7 +147,7 @@ export class ApprovalsPage implements OnInit {
           role: 'confirm',
           handler: () => {
             this.run(req, () =>
-              this.approvalService.approve(req.id, req.event?.id ?? ''),
+              this.approvalService.approve(req.id, req.event?.id ?? '')
             );
           },
         },
@@ -190,7 +191,7 @@ export class ApprovalsPage implements OnInit {
             const comment = (data.comment ?? '').trim();
             if (!comment) return false;
             this.run(req, () =>
-              this.approvalService.reject(req.id, req.event?.id ?? '', comment),
+              this.approvalService.reject(req.id, req.event?.id ?? '', comment)
             );
             return true;
           },
@@ -200,7 +201,6 @@ export class ApprovalsPage implements OnInit {
     await alert.present();
   }
 
-  ////////////////////
   async confirmRequestDocs(req: ApprovalRequest) {
     const alert = await this.alertCtrl.create({
       header: 'Solicitar documentos',
@@ -232,7 +232,7 @@ export class ApprovalsPage implements OnInit {
             if (names.length === 0) return false; // se requiere al menos un documento
             const comment = (data.comment ?? '').trim();
             this.run(req, () =>
-              this.approvalService.requestDocuments(req.id, comment, names),
+              this.approvalService.requestDocuments(req.id, comment, names)
             );
             return true;
           },
