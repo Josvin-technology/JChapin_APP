@@ -11,7 +11,9 @@
           {{ filteredEvents().length }} evento{{ filteredEvents().length !== 1 ? 's' : '' }} disponibles
         </p>
       </div>
-      <a routerLink="/events-create"
+      <a
+      *appCan="'events.manage'"
+       routerLink="/events-create"
         class="w-11 h-11 rounded-full bg-primary flex items-center justify-center shadow-md active:scale-95 transition-transform">
         <ion-icon name="add-outline" class="text-2xl text-white"></ion-icon>
       </a>

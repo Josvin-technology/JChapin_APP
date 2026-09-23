@@ -22,6 +22,7 @@ import {
 } from 'ionicons/icons';
 import { EventModel } from 'src/app/core/models/event.model';
 import { EventsService } from 'src/app/core/services/events-service';
+import { CanDirective } from 'src/app/core/directives/can-directive';
 
 interface ExploreCategory {
   label: string;
@@ -34,7 +35,7 @@ interface ExploreCategory {
   templateUrl: './explore.page.html',
   styleUrls: ['./explore.page.scss'],
   standalone: true,
-  imports: [IonTitle, IonToolbar, IonHeader, CommonModule, FormsModule, RouterLink, IonContent, IonIcon],
+  imports: [IonTitle, IonToolbar, IonHeader, CommonModule, FormsModule, RouterLink, IonContent, IonIcon, CanDirective],
 })
 export class ExplorePage implements OnInit {
 
