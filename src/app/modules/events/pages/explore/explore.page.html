@@ -2,6 +2,7 @@
   <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
     <ion-refresher-content></ion-refresher-content>
   </ion-refresher>
+
   <main
     class="w-full max-w-md mx-auto flex flex-col gap-5 px-4"
     style="
@@ -14,8 +15,8 @@
       <div>
         <h1 class="text-2xl font-black text-neutral">Eventos</h1>
         <p class="text-xs text-neutral/55 font-medium mt-0.5">
-          {{ filteredEvents().length }} evento{{ filteredEvents().length !== 1 ?
-          's' : '' }} disponibles
+          {{ upcomingTotal() }} {{ upcomingTotal() === 1 ? 'evento disponible' :
+          'eventos disponibles' }}
         </p>
       </div>
       <a
@@ -38,7 +39,7 @@
           type="text"
           placeholder="Buscar..."
           [ngModel]="searchQuery()"
-          (ngModelChange)="searchQuery.set($event)"
+          (ngModelChange)="onSearchChange($event)"
           class="w-full pl-10 pr-4 py-3 rounded-2xl border border-surface-dim/60 bg-white text-sm text-neutral placeholder:text-outline/60 focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all"
         />
       </div>
@@ -56,7 +57,11 @@
     </div>
 
     <!-- Events list -->
-    @if (filteredEvents().length === 0) {
+    @if (loading() && events().length === 0) {
+    <div class="flex justify-center py-16">
+      <ion-spinner name="crescent" class="text-primary"></ion-spinner>
+    </div>
+    } @else if (events().length === 0) {
     <div
       class="flex flex-col items-center justify-center py-16 gap-3 text-center"
     >
@@ -64,7 +69,16 @@
       <p class="font-bold text-neutral">Sin resultados</p>
       <p class="text-sm text-neutral/55">Prueba con otro término o categoría</p>
     </div>
-    } @for (event of filteredEvents(); track event.id) {
+    } @for (event of events(); track event.id; let i = $index) { @if (i ===
+    firstPastIndex()) {
+    <div class="flex items-center gap-3 pt-2">
+      <span class="h-px flex-1 bg-surface-dim"></span>
+      <span class="text-xs font-bold uppercase tracking-wide text-neutral/50">
+        Eventos finalizados
+      </span>
+      <span class="h-px flex-1 bg-surface-dim"></span>
+    </div>
+    }
     <a
       [routerLink]="['/events', event.id]"
       class="bg-white rounded-3xl overflow-hidden border border-surface-dim/40 shadow-sm active:scale-[0.99] transition-transform block"
@@ -96,12 +110,21 @@
           </p>
         </div>
 
-        <!-- Price badge -->
+        <!-- Price badge / Finished badge -->
+        @if (event.status === 'completed') {
+        <div
+          class="absolute top-3 right-3 inline-flex items-center gap-1.5 bg-neutral/85 backdrop-blur-sm text-white text-xs font-black px-3 py-1.5 rounded-full shadow-md"
+        >
+          <ion-icon name="checkmark-circle" class="text-sm"></ion-icon>
+          Finalizado
+        </div>
+        } @else {
         <div
           class="absolute top-3 right-3 bg-white/95 backdrop-blur-sm text-primary text-xs font-black px-3 py-1.5 rounded-full shadow-sm"
         >
           {{ event.price }}
         </div>
+        }
 
         <!-- Category badge -->
         <div
@@ -145,5 +168,14 @@
       </div>
     </a>
     }
+
+    <ion-infinite-scroll
+      [disabled]="loading() || !hasMore()"
+      (ionInfinite)="handleInfinite($event)"
+    >
+      <ion-infinite-scroll-content
+        loadingSpinner="crescent"
+      ></ion-infinite-scroll-content>
+    </ion-infinite-scroll>
   </main>
 </ion-content>

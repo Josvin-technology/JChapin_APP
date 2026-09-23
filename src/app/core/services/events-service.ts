@@ -103,6 +103,24 @@ export interface RpcResult {
   [key: string]: unknown;
 }
 
+// Cursor de paginación de Explorar: primero se recorren los eventos activos
+// ('upcoming') y, al agotarse, los finalizados ('past').
+export interface ExploreCursor {
+  phase: 'upcoming' | 'past';
+  offset: number;
+}
+
+export interface ExploreFilters {
+  search?: string;
+  category?: string | null;
+}
+
+export interface ExploreEventsPage {
+  events: EventModel[];
+  next: ExploreCursor | null; // null = no hay más páginas
+  upcomingTotal: number | null; // total de activos (solo si se consultó esa fase)
+}
+
 export interface CreateEventInput {
   title: string;
   description: string;
@@ -250,6 +268,111 @@ export class EventsService {
     const events = (data as unknown as EventRow[]).map((row) =>
       this.toEventModel(row)
     );
+    await this.attachAttendeeCounts(events);
+    return events;
+  }
+
+  // Página de Explorar con infinite scroll. Orden: activos ('published') por
+  // fecha ascendente y, al terminarse, finalizados ('completed') del más
+  // reciente al más antiguo. Si la fase de activos no llena la página, se
+  // completa con finalizados en la misma llamada. Búsqueda y categoría se
+  // filtran en el servidor para que apliquen a todos los eventos, no solo a
+  // los ya cargados.
+  async getExploreEvents(
+    cursor: ExploreCursor,
+    filters: ExploreFilters,
+    limit: number
+  ): Promise<ExploreEventsPage> {
+    let events: EventModel[] = [];
+    let upcomingTotal: number | null = null;
+    let next: ExploreCursor | null = null;
+
+    if (cursor.phase === 'upcoming') {
+      const { rows, count } = await this.fetchExplorePhase(
+        'upcoming',
+        cursor.offset,
+        limit,
+        filters
+      );
+      events = rows;
+      upcomingTotal = count;
+      if (rows.length === limit) {
+        return {
+          events: await this.withAttendeeCounts(events),
+          next: { phase: 'upcoming', offset: cursor.offset + limit },
+          upcomingTotal,
+        };
+      }
+      cursor = { phase: 'past', offset: 0 };
+    }
+
+    const remaining = limit - events.length;
+    const { rows } = await this.fetchExplorePhase(
+      'past',
+      cursor.offset,
+      remaining,
+      filters
+    );
+    events = [...events, ...rows];
+    if (rows.length === remaining) {
+      next = { phase: 'past', offset: cursor.offset + remaining };
+    }
+
+    return {
+      events: await this.withAttendeeCounts(events),
+      next,
+      upcomingTotal,
+    };
+  }
+
+  private async fetchExplorePhase(
+    phase: 'upcoming' | 'past',
+    offset: number,
+    limit: number,
+    filters: ExploreFilters
+  ): Promise<{ rows: EventModel[]; count: number | null }> {
+    // Con categoría, el join pasa a !inner para que el filtro descarte eventos.
+    const select = filters.category
+      ? EVENT_SELECT.replace(
+          'event_categories ( categories ( name ) )',
+          'event_categories!inner ( categories!inner ( name ) )'
+        )
+      : EVENT_SELECT;
+
+    const upcoming = phase === 'upcoming';
+    let query = this.supabaseClient
+      .from('events')
+      .select(select, { count: upcoming ? 'exact' : undefined })
+      .eq('status', upcoming ? 'published' : 'completed');
+
+    if (filters.category) {
+      query = query.eq('event_categories.categories.name', filters.category);
+    }
+
+    // Se quitan caracteres reservados de la sintaxis de filtros de PostgREST.
+    const search = filters.search?.replace(/[,()%*\\]/g, ' ').trim();
+    if (search) {
+      query = query.or(`title.ilike.%${search}%,location.ilike.%${search}%`);
+    }
+
+    const { data, error, count } = await query
+      .order('event_date', { ascending: upcoming })
+      .order('event_time', { ascending: upcoming })
+      .order('id')
+      .range(offset, offset + limit - 1);
+
+    if (error) throw error;
+    return {
+      rows: (data as unknown as EventRow[]).map((row) =>
+        this.toEventModel(row)
+      ),
+      count: count ?? null,
+    };
+  }
+
+  private async withAttendeeCounts(
+    events: EventModel[]
+  ): Promise<EventModel[]> {
     await this.attachAttendeeCounts(events);
     return events;
   }
@@ -487,18 +610,17 @@ export class EventsService {
 
   // Cambiar imagen de portada de un evento (organizador dueño o admin).
   async updateEventCover(eventId: string, file: File): Promise<string> {
-    const extension = file.name.split('.').pop() ?? 'jpg';
+    const extension = file.name.split('.').pop();
     const imageUrl = await this.storage.uploadFile(
       'events',
       `${eventId}-${Date.now()}.${extension}`,
       file
     );
 
-    const { data, error } = await this.supabaseClient.rpc('update_event_cover', {
-      p_event_id: eventId,
-      p_image_url: imageUrl,
-    });
-
+    const { data, error } = await this.supabaseClient.rpc(
+      'update_event_cover',
+      { p_event_id: eventId, p_image_url: imageUrl }
+    );
     if (error) throw error;
     return imageUrl;
   }
