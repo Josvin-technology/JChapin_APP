@@ -1,4 +1,7 @@
 <ion-content [fullscreen]="false" [scrollY]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
   <main
     class="w-full max-w-md mx-auto flex flex-col gap-5 px-4"
     style="

@@ -2,7 +2,13 @@ import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { IonContent, IonIcon } from '@ionic/angular/standalone';
+import {
+  IonContent,
+  IonIcon,
+  IonRefresher,
+  IonRefresherContent,
+  RefresherCustomEvent,
+} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   addOutline,
@@ -26,6 +32,8 @@ interface ExploreCategory {
   styleUrls: ['./explore.page.scss'],
   standalone: true,
   imports: [
+    IonRefresherContent,
+    IonRefresher,
     CommonModule,
     FormsModule,
     RouterLink,
@@ -77,6 +85,15 @@ export class ExplorePage implements OnInit {
   }
 
   async ngOnInit() {
+    await this.loadData();
+  }
+
+  async handleRefresh(event: RefresherCustomEvent) {
+    await this.loadData();
+    event.target.complete();
+  }
+
+  async loadData() {
     try {
       this.events.set(await this.eventService.getPublishedEvents());
     } catch (error) {
