@@ -4,18 +4,19 @@ import { IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   addOutline,
+  calendarClearOutline,
+  calendarOutline,
   compassOutline,
-  locationOutline,
   logInOutline,
   mapOutline,
   notificationsOutline,
-  searchOutline,
-  sparklesOutline,
+  ticketOutline,
 } from 'ionicons/icons';
 import { AppPermission } from 'src/app/core/models/permission.model';
 import { AuthService } from 'src/app/core/services/auth-service';
 import { NotificationsService } from 'src/app/core/services/notifications-service';
 import { PermissionService } from 'src/app/core/services/permission-service';
+import { longDate } from 'src/app/core/utils/date-format';
 
 interface QuickAction {
   label: string;
@@ -23,6 +24,7 @@ interface QuickAction {
   route: string;
   primary?: boolean;
   permission?: AppPermission;
+  requiresAuth?: boolean;
 }
 
 @Component({
@@ -58,12 +60,24 @@ export class HeroSearchComponent {
     );
   });
 
-  user = { name: 'María', avatar: 'assets/images/user-avatar.jpg' };
-  location = 'Antigua Guatemala, Guatemala';
+  // 'Miércoles, 1 de Octubre'
+  todayLabel = longDate(this.toIsoDate(new Date()));
 
   private allQuickActions: QuickAction[] = [
     { label: 'Explorar', icon: 'compass-outline', route: '/explore' },
     { label: 'Mapa', icon: 'map-outline', route: '/events-map' },
+    {
+      label: 'Agenda',
+      icon: 'calendar-outline',
+      route: '/agenda',
+      requiresAuth: true,
+    },
+    {
+      label: 'Tickets',
+      icon: 'ticket-outline',
+      route: '/tickets',
+      requiresAuth: true,
+    },
     {
       label: 'Crear',
       icon: 'add-outline',
@@ -71,25 +85,26 @@ export class HeroSearchComponent {
       primary: true,
       permission: 'events.manage',
     },
-    { label: 'Para ti', icon: 'sparkles-outline', route: '/explore' },
   ];
 
   quickActions = computed(() =>
     this.allQuickActions.filter(
-      (action) => !action.permission || this.permission.can(action.permission)
+      (action) =>
+        (!action.requiresAuth || this.isLoggedIn()) &&
+        (!action.permission || this.permission.can(action.permission))
     )
   );
 
   constructor() {
     addIcons({
-      searchOutline,
       notificationsOutline,
-      locationOutline,
+      calendarClearOutline,
       logInOutline,
       compassOutline,
       mapOutline,
+      calendarOutline,
+      ticketOutline,
       addOutline,
-      sparklesOutline,
     });
 
     effect(() => {
@@ -97,5 +112,11 @@ export class HeroSearchComponent {
         void this.notificationsService.loadNotifications();
       }
     });
+  }
+
+  private toIsoDate(d: Date): string {
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${d.getFullYear()}-${mm}-${dd}`;
   }
 }

@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { IonIcon } from '@ionic/angular/standalone';
@@ -9,39 +9,45 @@ import {
   trendingUpOutline,
 } from 'ionicons/icons';
 import { EventModel } from 'src/app/core/models/event.model';
-import { EventCardComponent } from '../event-card/event-card.component';
-import { EventsService } from 'src/app/core/services/events-service';
+
+// Cuántos eventos se muestran por sección en Inicio; el listado completo vive
+// en Explorar ("Ver todo").
+const HOME_SECTION_LIMIT = 4;
 
 @Component({
   selector: 'app-event-list',
   templateUrl: './event-list.component.html',
   styleUrls: ['./event-list.component.scss'],
-  imports: [CommonModule, IonIcon, RouterLink, EventCardComponent],
+  imports: [CommonModule, IonIcon, RouterLink],
 })
-export class EventListComponent implements OnInit {
-  private eventService = inject(EventsService);
-
-  private events = signal<EventModel[]>([]);
+export class EventListComponent {
+  // Eventos publicados y vigentes; los carga la página contenedora.
+  events = input<EventModel[]>([]);
 
   featuredEvents = computed(() =>
-    this.events().filter((event) => event.featured),
+    this.events()
+      .filter((event) => event.featured)
+      .slice(0, HOME_SECTION_LIMIT)
   );
   upcomingEvents = computed(() =>
-    this.events().filter((event) => !event.featured),
+    this.events()
+      .filter((event) => !event.featured)
+      .slice(0, HOME_SECTION_LIMIT)
   );
   recommendedEvents = computed(() =>
-    this.events().filter((event) => event.popular && !event.featured),
+    this.events()
+      .filter((event) => event.popular && !event.featured)
+      .slice(0, HOME_SECTION_LIMIT)
+  );
+
+  hasContent = computed(
+    () =>
+      this.featuredEvents().length > 0 ||
+      this.upcomingEvents().length > 0 ||
+      this.recommendedEvents().length > 0
   );
 
   constructor() {
     addIcons({ locationOutline, flameOutline, trendingUpOutline });
-  }
-
-  async ngOnInit() {
-    try {
-      this.events.set(await this.eventService.getPublishedEvents());
-    } catch (error) {
-      console.error('Error al cargar eventos:', error);
-    }
   }
 }

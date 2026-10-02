@@ -1,0 +1,75 @@
+@if (nextTicket(); as ticket) {
+<!-- ── Tu próximo evento ── -->
+<section class="flex flex-col gap-3">
+  <div class="flex justify-between items-center">
+    <h2 class="text-lg font-bold text-neutral">Tu próximo evento</h2>
+    <a routerLink="/agenda" class="text-sm font-bold text-primary"
+      >Ver agenda</a
+    >
+  </div>
+
+  <a
+    [routerLink]="['/tickets', ticket.id]"
+    class="flex items-center gap-3 rounded-2xl bg-primary p-3 text-white shadow-sm active:scale-[0.99] transition-transform"
+  >
+    <img
+      [src]="ticket.imagen"
+      [alt]="ticket.title"
+      class="w-16 h-16 rounded-xl object-cover flex-shrink-0"
+    />
+    <div class="flex-1 min-w-0">
+      <span
+        class="inline-block rounded-full bg-white/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+      >
+        {{ nextTicketCountdown() }}
+      </span>
+      <p class="mt-1 text-sm font-bold leading-tight line-clamp-1">
+        {{ ticket.title }}
+      </p>
+      <p class="mt-0.5 text-[11px] text-white/75 flex items-center gap-1">
+        <ion-icon name="time-outline" class="text-xs flex-shrink-0"></ion-icon>
+        {{ ticket.date }}@if (ticket.time) { · {{ ticket.time }} }
+      </p>
+      @if (ticket.location) {
+      <p class="text-[11px] text-white/75 line-clamp-1 flex items-center gap-1">
+        <ion-icon
+          name="location-outline"
+          class="text-xs flex-shrink-0"
+        ></ion-icon>
+        {{ ticket.location }}
+      </p>
+      }
+    </div>
+    <ion-icon
+      name="chevron-forward-outline"
+      class="text-lg text-white/70 flex-shrink-0"
+    ></ion-icon>
+  </a>
+</section>
+} @if (hasStats()) {
+<!-- ── Resumen en números ── -->
+<section class="flex flex-col gap-3">
+  <h2 class="text-lg font-bold text-neutral">En resumen</h2>
+
+  <div class="flex gap-2">
+    @for (stat of stats(); track stat.label) {
+    <a
+      [routerLink]="stat.route"
+      class="flex-1 flex flex-col gap-2 rounded-2xl bg-white p-3 border border-surface-dim/40 shadow-sm active:scale-[0.98] transition-transform"
+    >
+      <div
+        class="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center"
+      >
+        <ion-icon [name]="stat.icon" class="text-base text-primary"></ion-icon>
+      </div>
+      <div class="leading-tight">
+        <p class="text-2xl font-black text-neutral">{{ stat.value }}</p>
+        <p class="text-[11px] font-semibold text-neutral/55">
+          {{ stat.label }}
+        </p>
+      </div>
+    </a>
+    }
+  </div>
+</section>
+}

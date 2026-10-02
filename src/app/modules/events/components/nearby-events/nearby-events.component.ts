@@ -32,6 +32,11 @@ export class NearbyEventsComponent implements OnInit {
   }
 
   async ngOnInit() {
+    await this.load();
+  }
+
+  // Público para que Inicio pueda recargar con pull-to-refresh.
+  async load() {
     try {
       const pos = await this.locationService.getCurrentPosition();
       if (!pos) return;

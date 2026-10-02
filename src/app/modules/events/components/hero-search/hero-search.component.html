@@ -43,31 +43,22 @@
 
 
 
- <!-- Location + Title -->
+ <!-- Fecha + Título: la home es un resumen; el descubrimiento vive en Explorar/Mapa -->
  <div class="flex flex-col gap-1.5">
    <div class="flex items-center gap-1">
-     <ion-icon name="location-outline" class="text-sm text-primary flex-shrink-0"></ion-icon>
-     <p class="text-xs text-neutral/55 font-medium">{{ location }}</p>
+     <ion-icon name="calendar-clear-outline" class="text-sm text-primary flex-shrink-0"></ion-icon>
+     <p class="text-xs text-neutral/55 font-medium">{{ todayLabel }}</p>
    </div>
    <h1 class="text-[27px] font-black leading-tight text-neutral tracking-tight">
-     Descubre eventos <br /><span class="text-primary">cerca de ti</span>
+     Tu resumen <br /><span class="text-primary">de eventos</span>
    </h1>
  </div>
 
 
- <!-- Search bar -->
- <div class="relative flex items-center">
-   <ion-icon name="search-outline"
-     class="absolute left-4 text-lg text-outline pointer-events-none z-10"></ion-icon>
-   <input type="text" placeholder="Buscar eventos, organizadores..."
-     class="w-full pl-11 pr-4 py-3.5 rounded-2xl border border-surface-dim/50 bg-white text-sm text-neutral placeholder:text-neutral/40 shadow-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary/30 transition-all" />
- </div>
-
-
- <!-- Quick actions: la lista ya viene filtrada por permiso (ej. "Crear" solo organizadores) -->
- <div class="grid grid-cols-4 gap-2">
+ <!-- Quick actions: la lista ya viene filtrada por permiso/sesión (ej. "Crear" solo organizadores) -->
+ <div class="flex justify-between gap-2">
    @for (action of quickActions(); track action.label) {
-     <a [routerLink]="action.route" class="flex flex-col items-center gap-2 active:scale-95 transition-transform">
+     <a [routerLink]="action.route" class="flex-1 flex flex-col items-center gap-2 active:scale-95 transition-transform">
        <div class="w-14 h-14 rounded-2xl flex items-center justify-center shadow-sm border"
          [class.bg-primary]="action.primary"
          [class.border-primary]="action.primary"

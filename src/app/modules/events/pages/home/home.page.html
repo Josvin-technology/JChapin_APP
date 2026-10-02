@@ -1,4 +1,8 @@
 <ion-content [fullscreen]="false" [scrollY]="true">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+
   <main
     class="w-full max-w-md mx-auto px-4 flex flex-col gap-8 animate-fade-in"
     style="
@@ -6,16 +10,43 @@
       padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px) + 1rem);
     "
   >
-    <!-- Hero / Search -->
+    <!-- Saludo + accesos rápidos -->
     <app-hero-search />
 
-    <!-- eventos cerva de ti -->
-    <app-nearby-events />
+    <!-- Próximo evento del usuario + resumen en números (solo si hay datos) -->
+    <app-home-overview
+      class="flex flex-col gap-8 empty:hidden"
+      [events]="events()"
+      [tickets]="tickets()"
+      [isLoggedIn]="isLoggedIn()"
+    />
 
-    <!-- Categorías -->
-     <app-category-list />
+    <!-- Eventos Cerca de ti (solo si hay) -->
+    <app-nearby-events class="empty:hidden" />
 
-    <!-- Próximos Eventos -->
-     <app-event-list/>
+    <!-- Destacados / Próximos / Recomendados (cada sección solo si hay) -->
+    <app-event-list class="empty:hidden" [events]="events()" />
+
+    <!-- Invitación a Explorar: ahí vive el listado completo -->
+    <a
+      routerLink="/explore"
+      class="flex items-center gap-3 rounded-2xl border border-primary/15 bg-primary/5 p-4 active:scale-[0.99] transition-transform"
+    >
+      <div
+        class="w-11 h-11 rounded-xl bg-primary flex items-center justify-center flex-shrink-0"
+      >
+        <ion-icon name="compass-outline" class="text-xl text-white"></ion-icon>
+      </div>
+      <div class="flex-1 min-w-0 leading-tight">
+        <p class="text-sm font-bold text-neutral">Explora todos los eventos</p>
+        <p class="text-xs text-neutral/55 mt-0.5">
+          Busca por nombre, filtra por categoría y descubre qué hay cerca.
+        </p>
+      </div>
+      <ion-icon
+        name="arrow-forward-outline"
+        class="text-lg text-primary flex-shrink-0"
+      ></ion-icon>
+    </a>
   </main>
 </ion-content>
