@@ -10,9 +10,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { IonContent, IonSpinner } from '@ionic/angular/standalone';
 import {
-  APPROVER_METRICS,
-  BASE_MENU_ACTIONS,
-  ORGANIZER_METRICS,
   ORGANIZER_MENU_ACTIONS,
   PROFILE_USER,
   USER_MENU_ACTIONS,
@@ -32,7 +29,6 @@ import {
   clipboardOutline,
   createOutline,
   documentTextOutline,
-  heartOutline,
   peopleOutline,
   qrCodeOutline,
   statsChartOutline,
@@ -48,6 +44,12 @@ import { PermissionService } from 'src/app/core/services/permission-service';
 import { CanDirective } from 'src/app/core/directives/can-directive';
 import { PushNotificationsService } from 'src/app/core/services/push-notifications-service';
 import { EventStaffService } from 'src/app/core/services/event-staff-service';
+import {
+  ApproverProfileMetrics,
+  OrganizerProfileMetrics,
+  ProfileMetricsService,
+  UserProfileMetrics,
+} from 'src/app/core/services/profile-metrics-service';
 
 @Component({
   selector: 'app-profile',
@@ -73,6 +75,7 @@ export class ProfilePage implements OnInit {
   private permission = inject(PermissionService);
   private pushService = inject(PushNotificationsService);
   private eventStaff = inject(EventStaffService);
+  private metricsService = inject(ProfileMetricsService);
 
   hasStaffAccess = signal(false);
   canRoleSwitch = this.permission.canRoleSwitch;
@@ -102,10 +105,16 @@ export class ProfilePage implements OnInit {
 
   uploadingAvatar = signal(false);
 
-  selectedRole: ProfileRole = 'user';
-  organizerMetrics = ORGANIZER_METRICS;
-  approverMetrics = APPROVER_METRICS;
-  baseMenuActions = BASE_MENU_ACTIONS;
+  selectedRole = signal<ProfileRole>('user');
+
+  // null = aún cargando (la vista muestra '—').
+  userMetrics = signal<UserProfileMetrics | null>(null);
+  organizerMetrics = signal<OrganizerProfileMetrics | null>(null);
+  approverMetrics = signal<ApproverProfileMetrics | null>(null);
+
+  // Ionic dispara ionViewWillEnter también en la primera entrada; la carga
+  // inicial ya la hace el effect de selectedRole.
+  private hasEntered = false;
 
   constructor() {
     addIcons({
@@ -113,7 +122,6 @@ export class ProfilePage implements OnInit {
       peopleOutline,
       chevronForwardOutline,
       settingsOutline,
-      heartOutline,
       ticketOutline,
       calendarOutline,
       addOutline,
@@ -126,8 +134,12 @@ export class ProfilePage implements OnInit {
 
     effect(() => {
       if (!this.canRoleSwitch()) {
-        this.selectedRole = this.primaryRole();
+        this.selectedRole.set(this.primaryRole());
       }
+    });
+
+    effect(() => {
+      void this.loadMetrics(this.selectedRole());
     });
   }
 
@@ -138,28 +150,71 @@ export class ProfilePage implements OnInit {
       .catch((error) => console.error('No se pudo revisar el acceso: ', error));
   }
 
-  get menuActions(): ProfileMenuAction[] {
-    if (this.selectedRole === 'approver') {
-      return [
-        {
-          label: 'Bandeja de aprobaciones',
-          icon: 'document-text-outline',
-          route: '/approvals',
-          badge: '2',
-        },
-        ...this.baseMenuActions,
-      ];
+  // Al volver a Perfil (p. ej. tras comprar un ticket) se refrescan los números.
+  ionViewWillEnter() {
+    if (this.hasEntered) void this.loadMetrics(this.selectedRole());
+    this.hasEntered = true;
+  }
+
+  menuActions = computed<ProfileMenuAction[]>(() => {
+    const role = this.selectedRole();
+
+    // La bandeja ya tiene su tarjeta con el conteo de pendientes.
+    if (role === 'approver') return [];
+
+    if (role === 'organizer') {
+      return this.withBadges(ORGANIZER_MENU_ACTIONS, {
+        '/agenda': this.userMetrics()?.agendaThisMonth,
+      });
     }
 
-    if (this.selectedRole === 'organizer') {
-      return [...ORGANIZER_MENU_ACTIONS, ...BASE_MENU_ACTIONS];
-    }
-
+    const user = this.userMetrics();
     const userActions = this.hasStaffAccess()
       ? [...USER_MENU_ACTIONS, STAFF_VALIDATION_MENU_ACTION]
       : USER_MENU_ACTIONS;
 
-    return [...userActions, ...BASE_MENU_ACTIONS];
+    return this.withBadges(userActions, {
+      '/agenda': user?.agendaThisMonth,
+    });
+  });
+
+  private async loadMetrics(role: ProfileRole) {
+    try {
+      if (role === 'approver') {
+        this.approverMetrics.set(
+          await this.metricsService.getApproverMetrics()
+        );
+        return;
+      }
+
+      // "Mi agenda" también aparece en el menú del organizador.
+      const [user, organizer] = await Promise.all([
+        this.metricsService.getUserMetrics(),
+        role === 'organizer'
+          ? this.metricsService.getOrganizerMetrics()
+          : Promise.resolve(null),
+      ]);
+      this.userMetrics.set(user);
+      if (organizer) this.organizerMetrics.set(organizer);
+    } catch (error) {
+      console.error('No se pudieron cargar las métricas del perfil:', error);
+    }
+  }
+
+  private withBadges(
+    actions: ProfileMenuAction[],
+    counts: Record<string, number | undefined>
+  ): ProfileMenuAction[] {
+    return actions.map((action) => ({
+      ...action,
+      badge: this.badge(action.route ? counts[action.route] : undefined),
+    }));
+  }
+
+  // Sin badge mientras carga o si el conteo es 0.
+  private badge(count: number | undefined): string | undefined {
+    if (!count) return undefined;
+    return count > 99 ? '99+' : String(count);
   }
 
   async logout() {

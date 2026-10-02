@@ -1,9 +1,4 @@
-import {
-  ApprovalRequest,
-  ProfileMenuAction,
-  ProfileMetric,
-  ProfileUser,
-} from '../models/profile.model';
+import { ProfileMenuAction, ProfileUser } from '../models/profile.model';
 
 export const PROFILE_USER: ProfileUser = {
   name: 'Juan Lopez',
@@ -13,41 +8,22 @@ export const PROFILE_USER: ProfileUser = {
   roles: ['user', 'organizer', 'approver'],
 };
 
-export const ORGANIZER_METRICS: ProfileMetric[] = [
-  { value: '8', label: 'Eventos' },
-  { value: '1240', label: 'Tickets' },
-  { value: '4.8', label: 'Rating' },
-];
-
-export const APPROVER_METRICS: ProfileMetric[] = [
-  { value: '42', label: 'Aprobados' },
-  { value: '6', label: 'Rechazados' },
-  { value: '14', label: 'Este mes' },
-];
-
-export const BASE_MENU_ACTIONS: ProfileMenuAction[] = [
-  { label: 'Configuracion', icon: 'settings-outline' },
-];
+// Las métricas de Perfil (usuario, organizador, aprobador) y los badges del
+// menú se calculan en ProfileMetricsService con datos reales.
+// El menú solo lleva lo que no tiene ya una tarjeta/botón propio en Perfil
+// ("Mis Tickets", "Mis eventos", "Bandeja de aprobaciones", "Configuración").
 
 export const USER_MENU_ACTIONS: ProfileMenuAction[] = [
-  {
-    label: 'Eventos guardados',
-    icon: 'heart-outline',
-    route: '/events',
-    badge: '3',
-  },
-  { label: 'Mis tickets', icon: 'ticket-outline', route: '/tickets' },
-  { label: 'Mi agenda', icon: 'calendar-outline' },
+  { label: 'Mi agenda', icon: 'calendar-outline', route: '/agenda' },
 ];
 
 export const ORGANIZER_MENU_ACTIONS: ProfileMenuAction[] = [
-  { label: 'Mis eventos', icon: 'calendar-outline', route: '/events-mine' },
-  { label: 'validar tickets', icon: 'qr-code-outline', route: '/validation'},
-  { label: 'Mi agenda', icon: 'calendar-outline' },
+  { label: 'Validar tickets', icon: 'qr-code-outline', route: '/validation' },
+  { label: 'Mi agenda', icon: 'calendar-outline', route: '/agenda' },
 ];
 
 export const STAFF_VALIDATION_MENU_ACTION: ProfileMenuAction = {
-  label: 'validar tickets',
-  icon: 'qr-code-online',
-  route: '/validation'
+  label: 'Validar tickets',
+  icon: 'qr-code-outline',
+  route: '/validation',
 };
