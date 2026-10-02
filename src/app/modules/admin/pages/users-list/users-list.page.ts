@@ -10,9 +10,6 @@ import {
   IonSearchbar,
   IonSpinner,
   SearchbarCustomEvent,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -30,6 +27,7 @@ import {
   AdminUserListItem,
 } from 'src/app/core/models/admin-user.model';
 import { ProfileRole } from 'src/app/core/models/profile.model';
+import { BackButtonComponent } from 'src/app/shared/components/back-button/back-button.component';
 
 // Estilo del badge por rol (el rol admin se resalta, el resto usa el estilo neutro).
 const ROLE_BADGE_CLASSES: Record<ProfileRole, string> = {
@@ -45,9 +43,6 @@ const ROLE_BADGE_CLASSES: Record<ProfileRole, string> = {
   styleUrls: ['./users-list.page.scss'],
   standalone: true,
   imports: [
-    IonTitle,
-    IonToolbar,
-    IonHeader,
     CommonModule,
     IonContent,
     IonIcon,
@@ -55,6 +50,7 @@ const ROLE_BADGE_CLASSES: Record<ProfileRole, string> = {
     IonInfiniteScrollContent,
     IonSearchbar,
     IonSpinner,
+    BackButtonComponent,
   ],
 })
 export class UsersListPage implements OnInit {
@@ -105,10 +101,6 @@ export class UsersListPage implements OnInit {
 
   goToUser(id: string) {
     this.router.navigate(['/admin/users', id]);
-  }
-
-  goBack() {
-    this.router.navigate(['/profile']);
   }
 
   roleLabel(role: ProfileRole): string {

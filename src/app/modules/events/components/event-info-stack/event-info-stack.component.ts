@@ -27,6 +27,26 @@ export class EventInfoStackComponent implements OnInit {
 
   ngOnInit() {}
 
+  get canOpenMap(): boolean {
+    return (
+      (this.event.latitude != null && this.event.longitude != null) ||
+      !!this.event.location
+    );
+  }
+
+  // Abre la ubicación en Google Maps (app si está instalada, si no el navegador).
+  openInGoogleMaps() {
+    const query =
+      this.event.latitude != null && this.event.longitude != null
+        ? `${this.event.latitude},${this.event.longitude}`
+        : this.event.location ?? '';
+    const params = new URLSearchParams({ api: '1', query });
+    window.open(
+      `https://www.google.com/maps/search/?${params.toString()}`,
+      '_blank'
+    );
+  }
+
   get hasCapacity(): boolean {
     return !!this.event.attendees?.capacity;
   }

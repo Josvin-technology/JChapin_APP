@@ -1,7 +1,6 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
 import {
   IonContent,
   IonIcon,
@@ -14,6 +13,7 @@ import {
 import { addIcons } from 'ionicons';
 import { chevronBack, saveOutline } from 'ionicons/icons';
 import { AppSettingsService } from 'src/app/core/services/app-settings-service';
+import { BackButtonComponent } from 'src/app/shared/components/back-button/back-button.component';
 
 @Component({
   selector: 'app-admin-app-settings',
@@ -29,12 +29,12 @@ import { AppSettingsService } from 'src/app/core/services/app-settings-service';
     IonContent,
     IonIcon,
     IonSpinner,
+    BackButtonComponent,
   ],
 })
 export class AppSettingsPage implements OnInit {
   private fb = inject(FormBuilder);
   private appSettings = inject(AppSettingsService);
-  private router = inject(Router);
   private toastController = inject(ToastController);
 
   loading = signal(true);
@@ -57,10 +57,6 @@ export class AppSettingsPage implements OnInit {
     } finally {
       this.loading.set(false);
     }
-  }
-
-  goBack() {
-    this.router.navigate(['/profile']);
   }
 
   async save() {

@@ -230,10 +230,10 @@
           >Bandeja de aprobaciones</strong
         >
         <span class="text-xs text-neutral/65">
-          @switch (approverMetrics()?.pending) { @case (undefined) { Cargando
-          solicitudes… } @case (0) { Sin solicitudes pendientes } @case (1) { 1
-          solicitud pendiente } @default { {{ approverMetrics()!.pending }}
-          solicitudes pendientes } }
+          @if (approverMetrics(); as metrics) { @switch (metrics.pending) {
+          @case (0) { Sin solicitudes pendientes } @case (1) { 1 solicitud
+          pendiente } @default { {{ metrics.pending }} solicitudes pendientes }
+          } } @else { Cargando solicitudes… }
         </span>
       </span>
       <ion-icon

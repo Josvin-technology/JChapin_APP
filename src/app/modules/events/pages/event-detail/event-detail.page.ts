@@ -50,14 +50,14 @@ export class EventDetailPage implements OnInit {
   async ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
-      this.router.navigate(['/events']);
+      this.router.navigate(['/events'], { replaceUrl: true });
       return;
     }
 
     try {
       const event = await this.eventsService.getEventById(id);
       if (!event) {
-        this.router.navigate(['/events']);
+        this.router.navigate(['/events'], { replaceUrl: true });
         return;
       }
 
@@ -65,7 +65,7 @@ export class EventDetailPage implements OnInit {
       void this.loadTraffic(event);
     } catch (error) {
       console.error('No se puedo cargar el evento:', error);
-      this.router.navigate(['/events']);
+      this.router.navigate(['/events'], { replaceUrl: true });
     }
   }
 

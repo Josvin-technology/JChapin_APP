@@ -1,35 +1,21 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
-import {
-  IonContent,
-  IonIcon,
-  IonSpinner,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-} from '@ionic/angular/standalone';
+import { IonContent, IonIcon, IonSpinner } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { chevronBackOutline, qrCodeOutline, timeOutline } from 'ionicons/icons';
 import { EventsService } from 'src/app/core/services/events-service';
 import { EventStaffService } from 'src/app/core/services/event-staff-service';
 import { EventModel } from 'src/app/core/models/event.model';
 import { EventStaffGrant } from 'src/app/core/models/event-staff.model';
+import { BackButtonComponent } from 'src/app/shared/components/back-button/back-button.component';
 
 @Component({
   selector: 'app-validations-events',
   templateUrl: './validations-events.page.html',
   styleUrls: ['./validations-events.page.scss'],
   standalone: true,
-  imports: [
-    IonTitle,
-    IonToolbar,
-    IonHeader,
-    CommonModule,
-    IonContent,
-    IonIcon,
-    IonSpinner,
-  ],
+  imports: [CommonModule, IonContent, IonIcon, IonSpinner, BackButtonComponent],
 })
 export class ValidationsEventsPage implements OnInit {
   private router = inject(Router);
@@ -75,9 +61,5 @@ export class ValidationsEventsPage implements OnInit {
 
   openScanner(eventId: string) {
     this.router.navigate(['/validation', eventId]);
-  }
-
-  goBack() {
-    this.router.navigate(['/profile']);
   }
 }

@@ -1,32 +1,14 @@
-import { Component, inject, Input, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
-import { IonIcon } from '@ionic/angular/standalone';
-import { addIcons } from 'ionicons';
-import { chevronBack, heartOutline, shareSocialOutline } from 'ionicons/icons';
+import { Component, Input } from '@angular/core';
 import { EventModel } from 'src/app/core/models/event.model';
+import { BackButtonComponent } from 'src/app/shared/components/back-button/back-button.component';
+import { IonIcon, IonContent } from "@ionic/angular/standalone";
 
 @Component({
   selector: 'app-event-detail-hero',
   templateUrl: './event-detail-hero.component.html',
   styleUrls: ['./event-detail-hero.component.scss'],
-  imports: [IonIcon],
+  imports: [IonContent, IonIcon, BackButtonComponent],
 })
-export class EventDetailHeroComponent implements OnInit {
+export class EventDetailHeroComponent {
   @Input({ required: true }) event!: EventModel;
-
-  private router = inject(Router);
-
-  backIcon = chevronBack;
-  heartIcon = heartOutline;
-  shareIcon = shareSocialOutline;
-
-  constructor() {
-    addIcons({ chevronBack, heartOutline, shareSocialOutline });
-  }
-
-  ngOnInit() {}
-
-  goBack() {
-    this.router.navigate(['/events']);
-  }
 }

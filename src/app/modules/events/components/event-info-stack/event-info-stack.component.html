@@ -15,11 +15,6 @@
         </h2>
       </div>
     </div>
-    <button
-      class="rounded-full border border-surface-dim px-4 py-2 text-sm font-semibold text-neutral shadow-sm"
-    >
-      Seguir
-    </button>
   </article>
 
   <article
@@ -53,7 +48,15 @@
           <p class="text-sm text-neutral/60">{{ event.city }}</p>
         </div>
       </div>
-      <button class="shrink-0 text-xs font-bold text-primary">Ver mapa</button>
+      @if (canOpenMap) {
+      <button
+        type="button"
+        (click)="openInGoogleMaps()"
+        class="shrink-0 text-xs font-bold text-primary"
+      >
+        Ver mapa
+      </button>
+      }
     </div>
   </article>
 

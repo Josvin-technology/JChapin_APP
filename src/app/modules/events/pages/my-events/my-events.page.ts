@@ -41,6 +41,7 @@ import {
   qrCodeOutline,
   shieldCheckmarkOutline,
 } from 'ionicons/icons';
+import { BackButtonComponent } from 'src/app/shared/components/back-button/back-button.component';
 
 // Filtro del segmento superior: 'all' + los estados del evento.
 type EventFilter = 'all' | EventStatus;
@@ -73,6 +74,7 @@ const STATUS_META: Record<EventStatus, { label: string; classes: string }> = {
     IonRefresherContent,
     CommonModule,
     ReactiveFormsModule,
+    BackButtonComponent,
   ],
 })
 export class MyEventsPage implements OnInit {
@@ -165,10 +167,6 @@ export class MyEventsPage implements OnInit {
 
   statusMeta(status?: EventStatus) {
     return status ? STATUS_META[status] : STATUS_META.draft;
-  }
-
-  goBack() {
-    this.router.navigate(['/profile']);
   }
 
   // Chequeo de la ventana de cancelación/reprogramación del lado del cliente

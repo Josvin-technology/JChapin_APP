@@ -1,20 +1,16 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import {
-  IonContent,
-  ToastController,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
-} from '@ionic/angular/standalone';
+import { IonContent, ToastController } from '@ionic/angular/standalone';
 import { ActivatedRoute, Router } from '@angular/router';
 import { EventModel } from 'src/app/core/models/event.model';
 import { addIcons } from 'ionicons';
-import { chevronBack, star, starOutline } from 'ionicons/icons';
+import { star, starOutline } from 'ionicons/icons';
 import { IonIcon } from '@ionic/angular/standalone';
 import { EventsService } from 'src/app/core/services/events-service';
 import { ReviewService } from 'src/app/core/services/review-service';
+import { NavigationHistoryService } from 'src/app/core/services/navigation-history-service';
+import { BackButtonComponent } from 'src/app/shared/components/back-button/back-button.component';
 
 @Component({
   selector: 'app-review',
@@ -26,6 +22,7 @@ import { ReviewService } from 'src/app/core/services/review-service';
     CommonModule,
     FormsModule,
     IonIcon,
+    BackButtonComponent,
   ],
 })
 export class ReviewPage implements OnInit {
@@ -34,6 +31,7 @@ export class ReviewPage implements OnInit {
   private eventService = inject(EventsService);
   private toastController = inject(ToastController);
   private reviewService = inject(ReviewService);
+  private navHistory = inject(NavigationHistoryService);
 
   event?: EventModel;
   rating: number = 0;
@@ -42,27 +40,22 @@ export class ReviewPage implements OnInit {
 
   submitting = signal(false);
 
-  backIcon = chevronBack;
   starIcon = star;
   starOutlineIcon = starOutline;
 
   constructor() {
-    addIcons({ chevronBack, starOutline, star });
+    addIcons({ starOutline, star });
   }
 
   async ngOnInit() {
     const eventId = this.route.snapshot.paramMap.get('eventId');
     if (!eventId) {
-      this.router.navigate(['/events']);
+      this.router.navigate(['/events'], { replaceUrl: true });
       return;
     }
 
     this.event = (await this.eventService.getEventById(eventId)) ?? undefined;
-    if (!this.event) this.router.navigate(['/events']);
-  }
-
-  goBack() {
-    this.router.navigate(['/events', this.event?.id]);
+    if (!this.event) this.router.navigate(['/events'], { replaceUrl: true });
   }
 
   async submitReview() {
@@ -71,7 +64,7 @@ export class ReviewPage implements OnInit {
     if (this.rating < 1) {
       await this.presentToast(
         'Selecciona una calificación con estrellas',
-        'warning',
+        'warning'
       );
       return;
     }
@@ -91,15 +84,16 @@ export class ReviewPage implements OnInit {
         this.event.id,
         this.rating,
         this.comment,
-        this.recommendation,
+        this.recommendation
       );
       await this.presentToast('Gracias por tu reseña.', 'success');
-      this.router.navigate(['/events', this.event.id]);
+      // Vuelve a donde estaba (normalmente el detalle del evento).
+      this.navHistory.back(['/events', this.event.id]);
     } catch (err) {
       console.error('Error al guardar: ', err);
       await this.presentToast(
         'No se pudo guardar la reseña, reintenta.',
-        'danger',
+        'danger'
       );
     } finally {
       this.submitting.set(false);
@@ -108,7 +102,7 @@ export class ReviewPage implements OnInit {
 
   private async presentToast(
     message: string,
-    color: 'success' | 'danger' | 'warning',
+    color: 'success' | 'danger' | 'warning'
   ) {
     const toast = await this.toastController.create({
       message,

@@ -7,7 +7,7 @@ export type NotificationType =
   | 'event_reminder'
   | 'event_updated'
   | 'event_recommendation'
-  | 'event_document_upload'
+  | 'event_document_uploaded'
   | 'generic';
 
 // Notificación in-app tal como la usa la UI (camelCase).

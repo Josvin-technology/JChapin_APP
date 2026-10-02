@@ -35,6 +35,7 @@ import { EventsService } from 'src/app/core/services/events-service';
 import { EventMapComponent } from 'src/app/shared/components/event-map/event-map.component';
 import { GeocodingService } from 'src/app/core/services/geocoding-service';
 import { LocationService } from 'src/app/core/services/location-service';
+import { BackButtonComponent } from 'src/app/shared/components/back-button/back-button.component';
 
 interface Occurrence {
   date: string;
@@ -71,6 +72,7 @@ const STEP_CONTROLS: Record<number, string[]> = {
     FooterStepComponent,
     ReactiveFormsModule,
     EventMapComponent,
+    BackButtonComponent,
   ],
 })
 export class CreateEventPage implements OnInit {
@@ -229,10 +231,6 @@ export class CreateEventPage implements OnInit {
     if (this.step() > 1) this.step.update((s) => s - 1);
   }
 
-  goBack() {
-    this.router.navigate(['/profile']);
-  }
-
   onImageSelected(event: Event) {
     const input = event.target as HTMLInputElement;
     if (!input.files?.length) return;
@@ -322,7 +320,7 @@ export class CreateEventPage implements OnInit {
       });
 
       await this.presentToast('¡Evento creado correctamente!', 'success');
-      this.router.navigate(['/events']);
+      this.router.navigate(['/events'], { replaceUrl: true });
     } catch (err) {
       console.error('Error al crear evento:', err);
       await this.presentToast(

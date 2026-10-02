@@ -1,6 +1,6 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import {
   IonContent,
   IonIcon,
@@ -8,7 +8,6 @@ import {
   ToastController,
   IonHeader,
   IonToolbar,
-  IonTitle,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
@@ -23,24 +22,20 @@ import {
   EventApproval,
 } from 'src/app/core/models/profile.model';
 import { ApprovalService } from 'src/app/core/services/approval-service';
+import { BackButtonComponent } from 'src/app/shared/components/back-button/back-button.component';
 
 // Página del organizador para subir los PDFs que el aprobador solicitó.
 // Se llega desde "Mis eventos" cuando un evento está en revisión.
+
 @Component({
   selector: 'app-event-documents',
   templateUrl: './event-documents.page.html',
   styleUrls: ['./event-documents.page.scss'],
   standalone: true,
-  imports: [
-    CommonModule,
-    IonContent,
-    IonIcon,
-    IonSpinner,
-  ],
+  imports: [CommonModule, IonContent, IonIcon, IonSpinner, BackButtonComponent],
 })
 export class EventDocumentsPage implements OnInit {
   private route = inject(ActivatedRoute);
-  private router = inject(Router);
   private approvalService = inject(ApprovalService);
   private toastCtrl = inject(ToastController);
 
@@ -54,7 +49,7 @@ export class EventDocumentsPage implements OnInit {
   pendingCount = computed(
     () =>
       this.approval()?.documents.filter((d) => d.status === 'missing').length ??
-      0,
+      0
   );
 
   // Todos los documentos requeridos ya están cargados.
@@ -82,7 +77,7 @@ export class EventDocumentsPage implements OnInit {
     this.loading.set(true);
     try {
       this.approval.set(
-        await this.approvalService.getMyEventApproval(this.eventId),
+        await this.approvalService.getMyEventApproval(this.eventId)
       );
     } catch (error) {
       console.error('No se pudo cargar la información de documentos:', error);
@@ -130,10 +125,6 @@ export class EventDocumentsPage implements OnInit {
       console.error('No se pudo abrir el documento:', error);
       await this.presentToast('No se pudo abrir el documento.', 'danger');
     }
-  }
-
-  goBack() {
-    this.router.navigate(['/events-mine']);
   }
 
   private async presentToast(message: string, color: 'success' | 'danger') {

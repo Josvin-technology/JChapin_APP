@@ -1,0 +1,25 @@
+<button
+ type="button"
+ (click)="goBack()"
+ aria-label="Regresar"
+ class="grid shrink-0 place-items-center !rounded-full text-neutral shadow-sm transition-transform active:scale-95"
+ [class.h-10]="variant() === 'default'"
+ [class.w-10]="variant() === 'default'"
+ [class.bg-white]="variant() === 'default'"
+ [class.border]="variant() === 'default'"
+ [class.border-surface-dim/60]="variant() === 'default'"
+ [class.h-11]="variant() === 'overlay'"
+ [class.w-11]="variant() === 'overlay'"
+ [class.bg-white/95]="variant() === 'overlay'"
+>
+ <ion-icon
+   name="chevron-back-outline"
+   [class.text-xl]="variant() === 'default'"
+   [class.text-2xl]="variant() === 'overlay'"
+ ></ion-icon>
+</button>
+
+
+
+
+

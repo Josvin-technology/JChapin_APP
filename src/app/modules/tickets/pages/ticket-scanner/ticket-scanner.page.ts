@@ -1,8 +1,8 @@
 import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute, Router } from '@angular/router';
-import { IonContent, IonIcon, IonSpinner, IonHeader, IonToolbar, IonTitle } from '@ionic/angular/standalone';
+import { ActivatedRoute } from '@angular/router';
+import { IonContent, IonIcon, IonSpinner } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   alertCircleOutline,
@@ -10,7 +10,9 @@ import {
   chevronBackOutline,
   closeCircleOutline,
   keypadOutline,
-  qrCodeOutline, cameraOutline } from 'ionicons/icons';
+  qrCodeOutline,
+  cameraOutline,
+} from 'ionicons/icons';
 import {
   BarcodeFormat,
   BarcodeScanner,
@@ -21,17 +23,24 @@ import {
   ValidationResult,
   VALIDATION_MESSAGES,
 } from 'src/app/core/models/ticket-validation.model';
+import { BackButtonComponent } from 'src/app/shared/components/back-button/back-button.component';
 
 @Component({
   selector: 'app-ticket-scanner',
   templateUrl: './ticket-scanner.page.html',
   styleUrls: ['./ticket-scanner.page.scss'],
   standalone: true,
-  imports: [IonTitle, IonToolbar, IonHeader, CommonModule, FormsModule, IonContent, IonIcon, IonSpinner],
+  imports: [
+    CommonModule,
+    FormsModule,
+    IonContent,
+    IonIcon,
+    IonSpinner,
+    BackButtonComponent,
+  ],
 })
 export class TicketScannerPage implements OnInit {
   private route = inject(ActivatedRoute);
-  private router = inject(Router);
   private eventsService = inject(EventsService);
   private validationService = inject(TicketValidationService);
 
@@ -45,7 +54,15 @@ export class TicketScannerPage implements OnInit {
   cameraUnavailable = signal(false);
 
   constructor() {
-    addIcons({chevronBackOutline,qrCodeOutline,cameraOutline,alertCircleOutline,keypadOutline,checkmarkCircleOutline,closeCircleOutline,});
+    addIcons({
+      chevronBackOutline,
+      qrCodeOutline,
+      cameraOutline,
+      alertCircleOutline,
+      keypadOutline,
+      checkmarkCircleOutline,
+      closeCircleOutline,
+    });
   }
 
   async ngOnInit() {
@@ -114,9 +131,5 @@ export class TicketScannerPage implements OnInit {
 
   messageFor(result: ValidationResult): string {
     return VALIDATION_MESSAGES[result.reason];
-  }
-
-  goBack() {
-    this.router.navigate(['/validation']);
   }
 }

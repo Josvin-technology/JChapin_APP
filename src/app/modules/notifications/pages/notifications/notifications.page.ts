@@ -1,12 +1,7 @@
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import {
-  IonContent,
-  IonHeader,
-  IonTitle,
-  IonToolbar,
-  IonIcon, IonSpinner } from '@ionic/angular/standalone';
+import { IonContent, IonIcon, IonSpinner } from '@ionic/angular/standalone';
 import {
   NotificationModel,
   NotificationType,
@@ -26,6 +21,7 @@ import { addIcons } from 'ionicons';
 import { NotificationsService } from 'src/app/core/services/notifications-service';
 import { Router } from '@angular/router';
 import { resolveNotificationRoute } from 'src/app/core/utils/notifications-route';
+import { BackButtonComponent } from 'src/app/shared/components/back-button/back-button.component';
 
 const TYPE_ICON: Record<NotificationType, string> = {
   event_pending_review: 'time-outline',
@@ -35,7 +31,7 @@ const TYPE_ICON: Record<NotificationType, string> = {
   event_reminder: 'calendar-outline',
   event_updated: 'calendar-outline',
   event_recommendation: 'sparkles-outline',
-  event_document_upload: 'document-text-upline',
+  event_document_uploaded: 'document-text-outline',
   generic: 'notifications-outline',
 };
 
@@ -44,14 +40,13 @@ const TYPE_ICON: Record<NotificationType, string> = {
   templateUrl: './notifications.page.html',
   styleUrls: ['./notifications.page.scss'],
   standalone: true,
-  imports: [IonSpinner, 
+  imports: [
+    IonSpinner,
     IonContent,
-    IonHeader,
-    IonTitle,
-    IonToolbar,
     CommonModule,
     FormsModule,
     IonIcon,
+    BackButtonComponent,
   ],
 })
 export class NotificationsPage implements OnInit {
@@ -103,10 +98,6 @@ export class NotificationsPage implements OnInit {
 
   markAllAsRead(): void {
     void this.notificationsService.markAllAsRead();
-  }
-
-  goBack(): void {
-    history.back();
   }
 
   // Tiempo relativo en español (ahora / hace X min / h / d / fecha).

@@ -6,7 +6,10 @@ import {
   IonIcon,
   IonSpinner,
   IonToggle,
-  ToastController, IonHeader, IonToolbar, IonTitle } from '@ionic/angular/standalone';
+  ToastController,
+  IonHeader,
+  IonToolbar,
+} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { chevronBack, personCircleOutline } from 'ionicons/icons';
 import { AdminUsersService } from 'src/app/core/services/admin-users-service';
@@ -15,13 +18,23 @@ import {
   AdminUserDetail,
 } from 'src/app/core/models/admin-user.model';
 import { ProfileRole } from 'src/app/core/models/profile.model';
+import { BackButtonComponent } from 'src/app/shared/components/back-button/back-button.component';
 
 @Component({
   selector: 'app-admin-user-detail',
   templateUrl: './admin-user-detail.page.html',
   styleUrls: ['./admin-user-detail.page.scss'],
   standalone: true,
-  imports: [IonTitle, IonToolbar, IonHeader, CommonModule, IonContent, IonIcon, IonSpinner, IonToggle],
+  imports: [
+    IonToolbar,
+    IonHeader,
+    CommonModule,
+    IonContent,
+    IonIcon,
+    IonSpinner,
+    IonToggle,
+    BackButtonComponent,
+  ],
 })
 export class AdminUserDetailPage implements OnInit {
   private route = inject(ActivatedRoute);
@@ -53,20 +66,20 @@ export class AdminUserDetailPage implements OnInit {
   async ngOnInit() {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
-      this.router.navigate(['/admin/users']);
+      this.router.navigate(['/admin/users'], { replaceUrl: true });
       return;
     }
 
     try {
       const user = await this.usersService.getUserById(id);
       if (!user) {
-        this.router.navigate(['/admin/users']);
+        this.router.navigate(['/admin/users'], { replaceUrl: true });
         return;
       }
       this.user.set(user);
     } catch (error) {
       console.error('No se pudo cargar el usuario:', error);
-      this.router.navigate(['/admin/users']);
+      this.router.navigate(['/admin/users'], { replaceUrl: true });
     } finally {
       this.loading.set(false);
     }
@@ -103,10 +116,6 @@ export class AdminUserDetailPage implements OnInit {
     } finally {
       this.setPending(role, false);
     }
-  }
-
-  goBack() {
-    this.router.navigate(['/admin/users']);
   }
 
   private setPending(role: ProfileRole, pending: boolean) {
