@@ -6,6 +6,7 @@ import {
   addOutline,
   compassOutline,
   locationOutline,
+  logInOutline,
   mapOutline,
   notificationsOutline,
   searchOutline,
@@ -78,11 +79,13 @@ export class HeroSearchComponent {
       (action) => !action.permission || this.permission.can(action.permission)
     )
   );
+
   constructor() {
     addIcons({
       searchOutline,
       notificationsOutline,
       locationOutline,
+      logInOutline,
       compassOutline,
       mapOutline,
       addOutline,

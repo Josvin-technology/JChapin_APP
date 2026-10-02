@@ -8,7 +8,7 @@ import {
   Validators,
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { IonContent, IonIcon, IonHeader, IonToolbar, IonTitle } from '@ionic/angular/standalone';
+import { IonContent, IonIcon } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   arrowForward,
@@ -19,6 +19,7 @@ import {
   personOutline,
 } from 'ionicons/icons';
 import { AuthService } from 'src/app/core/services/auth-service';
+import { GoogleSignInButtonComponent } from '../../components/google-sign-in-button/google-sign-in-button.component';
 
 function passwordsMatch(control: AbstractControl): ValidationErrors | null {
   const pw = control.get('password')?.value;
@@ -31,7 +32,14 @@ function passwordsMatch(control: AbstractControl): ValidationErrors | null {
   templateUrl: './register.page.html',
   styleUrls: ['./register.page.scss'],
   standalone: true,
-  imports: [IonTitle, IonToolbar, IonHeader, IonIcon, IonContent, CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [
+    IonIcon,
+    IonContent,
+    CommonModule,
+    ReactiveFormsModule,
+    RouterLink,
+    GoogleSignInButtonComponent,
+  ],
 })
 export class RegisterPage {
   private auth = inject(AuthService);
@@ -50,7 +58,7 @@ export class RegisterPage {
       password: ['', [Validators.required, Validators.minLength(8)]],
       confirmPassword: ['', Validators.required],
     },
-    { validators: passwordsMatch },
+    { validators: passwordsMatch }
   );
 
   loading = this.auth.loading;
@@ -103,9 +111,8 @@ export class RegisterPage {
     // Si ya tiene sesión activa → directo a tabs.
     // Si necesita confirmar email → mostrar mensaje.
     if (data.session) {
-      this.router.navigate(['/tabs']);
+      this.router.navigate(['/events']);
     } else {
-      // "Email Confirmations" habilitado en Supabase Dashboard
       this.router.navigate(['/verify-code'], { queryParams: { email } });
     }
   }
@@ -116,5 +123,10 @@ export class RegisterPage {
     if (msg.includes('Password should be'))
       return 'La contraseña debe tener al menos 8 caracteres.';
     return 'Ocurrió un error. Intenta de nuevo.';
+  }
+
+  onGoogleSignedIn() {
+    this.error.set('');
+    this.router.navigate(['/events']);
   }
 }

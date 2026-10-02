@@ -3,6 +3,8 @@ import { SupabaseService } from './supabase-service';
 import { Session } from '@supabase/supabase-js';
 import { ProfileRole } from '../models/profile.model';
 import { Router } from '@angular/router';
+import { GoogleAuthService } from './google-auth-service';
+import { GoogleSignInError } from '../models/google-auth.model';
 
 @Injectable({
   providedIn: 'root',
@@ -10,16 +12,17 @@ import { Router } from '@angular/router';
 export class AuthService {
   private supabaseservice = inject(SupabaseService);
   private router = inject(Router);
+  private googleAuth = inject(GoogleAuthService);
 
   private supabase = this.supabaseservice.client;
 
   private _session = signal<Session | null>(null);
   private _roles = signal<ProfileRole[]>([]);
   private _loading = signal(false);
+  private _googleLoading = signal(false);
   private _profile = signal<{ name: string; avatar_url: string | null } | null>(
-    null,
+    null
   );
-
   private _initialized = signal(false);
 
   session = this._session.asReadonly();
@@ -29,6 +32,7 @@ export class AuthService {
   loading = this._loading.asReadonly();
   profile = this._profile.asReadonly();
   initialized = this._initialized.asReadonly();
+  googleLoading = this._googleLoading.asReadonly();
 
   constructor() {
     this.init();
@@ -96,13 +100,33 @@ export class AuthService {
     return result;
   }
 
-  async signInWithGoogle() {
-    return this.supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: `${window.location.origin}/auth/callback` },
-    });
+  async signInWithGoogle(): Promise<{ error: GoogleSignInError | null }> {
+    this._googleLoading.set(true);
+
+    try {
+      const { credential, error } = await this.googleAuth.signIn();
+      if (!credential) return { error };
+
+      const { error: sessionError } =
+        await this.supabase.auth.signInWithIdToken({
+          provider: 'google',
+          token: credential.idToken,
+          nonce: credential.nonce,
+        });
+
+      if (sessionError) {
+        console.error('AUTH: singInWithIdToken ', sessionError);
+
+        return { error: 'session-failed' };
+      }
+
+      return { error: null };
+    } finally {
+      this._googleLoading.set(false);
+    }
   }
   async signOut() {
+    await this.googleAuth.signOut();
     await this.supabase.auth.signOut();
     this.router.navigate(['/login']);
   }
@@ -117,9 +141,9 @@ export class AuthService {
     });
 
     this._loading.set(false);
-
     return result;
   }
+
   async updateAvatarUrl(avatarUrl: string) {
     const userId = this.user()?.id;
     if (!userId) return;

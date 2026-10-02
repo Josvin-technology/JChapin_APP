@@ -18,13 +18,11 @@
       </div>
 
       <!-- Google -->
-      <button
-        type="button"
-        class="w-full h-14 bg-white flex items-center justify-center gap-3 border border-surface-dim/70 !rounded-md hover:bg-surface-dim/10 transition-all"
-      >
-        <img src="assets/icon/google-logo.svg" alt="Google" class="w-5 h-5" />
-        <span>Continuar con Google</span>
-      </button>
+      <app-google-sign-in-button
+        [disabled]="loading()"
+        (signedIn)="onGoogleSignedIn()"
+        (failed)="error.set($event)"
+      />
 
       <div class="flex items-center gap-4 my-6">
         <div class="flex-1 h-[1px] bg-surface-dim"></div>
@@ -51,18 +49,15 @@
               name="mail-outline"
               class="absolute left-4 top-1/2 -translate-y-1/2 text-outline text-xl"
             ></ion-icon>
-            <input
-              type="email"
-              formControlName="email"
-              placeholder="ejemplo@jchapin.gt"
-              autocomplete="email"
-              class="w-full pl-12 pr-4 py-3 bg-surface rounded-md border transition-all outline-none"
-              [class.border-surface-dim]="!(email.touched && email.invalid)"
-              [class.border-red-500]="email.touched && email.invalid"
-              [class.focus:border-primary]="!(email.touched && email.invalid)"
-              [class.focus:ring-2]="!(email.touched && email.invalid)"
-              [class.focus:ring-primary/20]="!(email.touched && email.invalid)"
-            />
+            <input type="email" formControlName="email"
+            placeholder="ejemplo@jchapin.gt" autocomplete="email" class="w-full
+            pl-12 pr-4 py-3 bg-surface rounded-md border transition-all
+            outline-none" [class.border-surface-dim]="!(email.touched &&
+            email.invalid)" [class.border-red-500]="email.touched &&
+            email.invalid" [class.focus:border-primary]="!(email.touched &&
+            email.invalid)" [class.focus:ring-2]="!(email.touched &&
+            email.invalid)" [class.focus:ring-primary/20]="!(email.touched &&
+            email.invalid)" />
           </div>
           @if (email.touched && email.errors) {
           <p class="text-red-600 text-xs font-semibold ml-1 mt-0.5">

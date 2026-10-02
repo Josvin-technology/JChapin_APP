@@ -2,7 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
-import { IonContent, IonIcon, IonSpinner, IonHeader, IonToolbar, IonTitle } from '@ionic/angular/standalone';
+import { IonContent, IonIcon, IonSpinner } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   arrowForward,
@@ -13,19 +13,21 @@ import {
   compassOutline,
 } from 'ionicons/icons';
 import { AuthService } from 'src/app/core/services/auth-service';
+import { GoogleSignInButtonComponent } from '../../components/google-sign-in-button/google-sign-in-button.component';
 
 @Component({
   selector: 'app-login',
   templateUrl: './login.page.html',
   styleUrls: ['./login.page.scss'],
   standalone: true,
-  imports: [IonTitle, IonToolbar, IonHeader, 
-    IonSpinner,
+  imports: [
     IonIcon,
     IonContent,
+    IonSpinner,
     CommonModule,
     ReactiveFormsModule,
     RouterLink,
+    GoogleSignInButtonComponent,
   ],
 })
 export class LoginPage {
@@ -83,5 +85,10 @@ export class LoginPage {
     if (msg.includes('Email not confirmed'))
       return 'Debes confirmar tu correo antes de iniciar sesión.';
     return 'Ocurrió un error. Intenta de nuevo.';
+  }
+
+  onGoogleSignedIn() {
+    this.error.set('');
+    this.router.navigate(['/events']);
   }
 }
