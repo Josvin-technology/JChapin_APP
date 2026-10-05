@@ -3,21 +3,24 @@ import { AuthService } from './auth-service';
 import { SupabaseService } from './supabase-service';
 import { EventStaffGrant, StaffCandidate } from '../models/event-staff.model';
 
-// Fila cruda de profiles para la búsqueda de candidatos a staff.
-interface ProfileRow {
+// Fila de la RPC search_staff_candidates. El correo viene enmascarado
+// ("j***@gmail.com") salvo que se haya buscado por el correo exacto.
+interface CandidateRow {
   id: string;
   name: string;
   email: string;
   avatar_url: string | null;
 }
 
-// Fila cruda de event_staff_grants con el perfil embebido (gestión del organizador).
-interface GrantWithProfileRow {
+// Fila de la RPC list_event_staff (staff de un evento con datos de perfil).
+interface StaffRow {
   event_id: string;
   profile_id: string;
+  name: string;
+  email: string;
+  avatar_url: string | null;
   granted_at: string;
   expires_at: string;
-  profile: { name: string; email: string; avatar_url: string | null } | null;
 }
 
 // Fila cruda de event_staff_grants con el evento embebido (vista del propio staff).
@@ -33,29 +36,28 @@ export class EventStaffService {
   private supabaseClient = inject(SupabaseService).client;
   private auth = inject(AuthService);
 
-  async searchUsers(term: string, limit = 10): Promise<StaffCandidate[]> {
+  // Busca candidatos a staff por nombre (parcial) o correo exacto. Solo el
+  // dueño del evento o el admin pueden llamarla.
+  async searchUsers(
+    eventId: string,
+    term: string,
+    limit = 10
+  ): Promise<StaffCandidate[]> {
     const query = term.trim();
     if (!query) return [];
 
-    const pattern = `%${this.escapeLikePattern(query)}%`;
-    const { data, error } = await this.supabaseClient
-      .from('profiles')
-      .select('id, name, email, avatar_url')
-      .or(`name.ilike.${pattern},email.ilike.${pattern}`)
-      .order('name', { ascending: true })
-      .limit(limit);
+    const { data, error } = await this.supabaseClient.rpc(
+      'search_staff_candidates',
+      { p_event_id: eventId, p_term: query, p_limit: limit }
+    );
 
     if (error) throw error;
-    return (data as unknown as ProfileRow[]).map((row) => ({
+    return (data as CandidateRow[]).map((row) => ({
       id: row.id,
       name: row.name || 'Sin nombre',
       email: row.email,
       avatarUrl: row.avatar_url,
     }));
-  }
-
-  private escapeLikePattern(term: string): string {
-    return term.replace(/[%_,]/g, (char) => `\\${char}`);
   }
 
   // Otorga acceso temporal: `hours` desde ahora.
@@ -96,21 +98,17 @@ export class EventStaffService {
   // Staff con acceso a un evento (vigente o no), para la página de gestión
   // del organizador.
   async listGrantsForEvent(eventId: string): Promise<EventStaffGrant[]> {
-    const { data, error } = await this.supabaseClient
-      .from('event_staff_grants')
-      .select(
-        'event_id, profile_id, granted_at, expires_at, profile:profiles!profile_id ( name, email, avatar_url )'
-      )
-      .eq('event_id', eventId)
-      .order('expires_at', { ascending: false });
+    const { data, error } = await this.supabaseClient.rpc('list_event_staff', {
+      p_event_id: eventId,
+    });
 
     if (error) throw error;
-    return (data as unknown as GrantWithProfileRow[]).map((row) => ({
+    return (data as StaffRow[]).map((row) => ({
       eventId: row.event_id,
       profileId: row.profile_id,
-      name: row.profile?.name || 'Sin nombre',
-      email: row.profile?.email ?? '',
-      avatarUrl: row.profile?.avatar_url ?? null,
+      name: row.name || 'Sin nombre',
+      email: row.email ?? '',
+      avatarUrl: row.avatar_url,
       grantedAt: row.granted_at,
       expiresAt: row.expires_at,
     }));

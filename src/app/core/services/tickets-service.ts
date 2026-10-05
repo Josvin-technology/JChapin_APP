@@ -9,9 +9,6 @@ import {
 } from '../utils/date-format';
 import { SupabaseService } from './supabase-service';
 
-// Tipo de ticket según el enum ticket_type de la base (general | vip | gratuito).
-type TicketType = 'general' | 'vip' | 'gratuito';
-
 const TYPE_LABELS: Record<string, string> = {
   general: 'Entrada General',
   vip: 'Entrada VIP',
@@ -51,13 +48,6 @@ event:events!event_id ( title,image_url, event_date, event_time, location, image
 export class TicketsService {
   private supabaseClient = inject(SupabaseService).client;
   private auth = inject(AuthService);
-
-  private generateCode(): string {
-    const year = new Date().getFullYear();
-    const rand = Math.random().toString(36).slice(2, 8).toUpperCase();
-
-    return `JCH-${year}-${rand}`;
-  }
 
   private toTicketModel(row: TicketRow): TicketModel {
     return {
@@ -126,49 +116,20 @@ export class TicketsService {
     return !!data;
   }
 
-  async registerTicket(input: {
-    eventId: string;
-    price: number;
-  }): Promise<string> {
-    const userId = this.auth.user()?.id;
-    if (!userId) throw new Error('Usuario no autenticado');
+  // Reserva un ticket con la RPC reserve_ticket: el servidor valida el estado
+  // del evento y el cupo, y decide precio, tipo y código. Si el usuario ya
+  // tenía un ticket activo, devuelve ese mismo (reason 'existing').
+  async reserveTicket(eventId: string): Promise<RpcResult> {
+    const { data, error } = await this.supabaseClient.rpc('reserve_ticket', {
+      p_event_id: eventId,
+    });
 
-    await this.upsertGoing(input.eventId, userId);
-
-    //si ya existe el registro de ticket activo obtenemos el ticket existente
-    const { data: existTiecket } = await this.supabaseClient
-      .from('tickets')
-      .select(TICKET_SELECT)
-      .eq('event_id', input.eventId)
-      .eq('user_id', userId)
-      .eq('status', 'active')
-      .maybeSingle();
-
-    if (existTiecket) return existTiecket.id;
-
-    // Creación del ticket con event_id + user_id
-    const type: TicketType = input.price === 0 ? 'gratuito' : 'general';
-    const code = this.generateCode();
-
-    const { data: ticketData, error: ticketError } = await this.supabaseClient
-      .from('tickets')
-      .insert({
-        event_id: input.eventId,
-        user_id: userId,
-        code,
-        type,
-        status: 'active',
-        price: input.price,
-      })
-      .select('id')
-      .single();
-
-    if (ticketError) {
-      console.error('Error al crear ticket:', ticketError);
-      throw new Error('No se pudo crear el ticket');
+    if (error) {
+      console.error('Error al reservar ticket:', error);
+      throw new Error('No se pudo reservar el ticket');
     }
 
-    return ticketData.id as string;
+    return data as RpcResult;
   }
 
   // Tickets del usuario actual (para "Mis Tickets"), ya mapeados a TicketModel.
@@ -221,7 +182,7 @@ export class TicketsService {
     return data ? this.toTicketModel(data as unknown as TicketRow) : null;
   }
 
-  // Liberar un ticket (cambiar status a 'cancelled').
+  //Liberar un ticket (cambiar status a 'cancelled').
   async cancelMyTicket(ticketId: string): Promise<RpcResult> {
     const { data, error } = await this.supabaseClient.rpc('cancel_my_ticket', {
       p_ticket_id: ticketId,

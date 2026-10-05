@@ -6,17 +6,16 @@ import { AdminUserDetail, AdminUserListItem } from '../models/admin-user.model';
 // Tamaño de página para el scroll infinito del listado de usuarios.
 export const ADMIN_USERS_PAGE_SIZE = 20;
 
-// Fila cruda que devuelve Supabase con los roles del perfil embebidos.
-interface ProfileRow {
+// Fila que devuelve la RPC admin_users. El correo ya no se puede leer de la
+// tabla profiles desde el cliente: solo el admin lo obtiene por esta RPC.
+interface AdminUserRow {
   id: string;
   name: string;
   email: string;
   avatar_url: string | null;
   created_at: string;
-  profile_roles: { role: ProfileRole }[] | null;
+  roles: ProfileRole[] | null;
 }
-
-const PROFILE_SELECT = `id, name, email, avatar_url, created_at, profile_roles ( role )`;
 
 @Injectable({
   providedIn: 'root',
@@ -32,39 +31,24 @@ export class AdminUsersService {
     limit: number = ADMIN_USERS_PAGE_SIZE,
     search?: string
   ): Promise<AdminUserListItem[]> {
-    let query = this.supabaseClient.from('profiles').select(PROFILE_SELECT);
-
-    const term = search?.trim();
-    if (term) {
-      const pattern = `%${this.escapeLikePattern(term)}%`;
-      query = query.or(`name.ilike.${pattern},email.ilike.${pattern}`);
-    }
-
-    const { data, error } = await query
-      .order('name', { ascending: true })
-      .range(offset, offset + limit - 1);
+    const { data, error } = await this.supabaseClient.rpc('admin_users', {
+      p_search: search?.trim() || null,
+      p_offset: offset,
+      p_limit: limit,
+    });
 
     if (error) throw error;
-    return (data as unknown as ProfileRow[]).map((row) =>
-      this.toUserModel(row)
-    );
-  }
-
-  // Escapa los caracteres especiales de PostgREST (comodines `%`/`_` y el separador `,` de `.or()`).
-  private escapeLikePattern(term: string): string {
-    return term.replace(/[%_,]/g, (char) => `\\${char}`);
+    return (data as AdminUserRow[]).map((row) => this.toUserModel(row));
   }
 
   async getUserById(id: string): Promise<AdminUserDetail | null> {
-    const { data, error } = await this.supabaseClient
-      .from('profiles')
-      .select(PROFILE_SELECT)
-      .eq('id', id)
-      .maybeSingle();
+    const { data, error } = await this.supabaseClient.rpc('admin_users', {
+      p_id: id,
+    });
 
     if (error) throw error;
-    if (!data) return null;
-    return this.toUserModel(data as unknown as ProfileRow);
+    const row = (data as AdminUserRow[])[0];
+    return row ? this.toUserModel(row) : null;
   }
 
   async grantRole(profileId: string, role: ProfileRole): Promise<void> {
@@ -85,14 +69,14 @@ export class AdminUsersService {
     if (error) throw error;
   }
 
-  private toUserModel(row: ProfileRow): AdminUserDetail {
+  private toUserModel(row: AdminUserRow): AdminUserDetail {
     return {
       id: row.id,
       name: row.name || 'Sin nombre',
       email: row.email,
       avatarUrl: row.avatar_url,
       createdAt: row.created_at,
-      roles: (row.profile_roles ?? []).map((r) => r.role),
+      roles: row.roles ?? [],
     };
   }
 }
