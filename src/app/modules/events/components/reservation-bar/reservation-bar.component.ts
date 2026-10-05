@@ -68,10 +68,20 @@ export class ReservationBarComponent implements OnInit {
     await toast.present();
   }
 
-  private parsePrice(label?: string): number {
-    if (!label) return 0;
-    const digits = label.replace(/[^0-9]/g, '');
-    return digits ? Number(digits) : 0;
+  // Mensajes para los `reason` que devuelve la RPC reserve_ticket.
+  private reserveErrorMessage(reason: string): string {
+    switch (reason) {
+      case 'sold_out':
+        return 'Ya no hay cupos disponibles para este evento.';
+      case 'event_passed':
+        return 'Este evento ya fue finalizado, no se puede reservar';
+      case 'invalid_status':
+        return 'Este evento no está disponible para reservas.';
+      case 'not_authenticated':
+        return 'Inicia sesión para reservar.';
+      default:
+        return 'No se pudo reservar el ticket. Intenta nuevamente.';
+    }
   }
 
   async reserveTicket() {
@@ -95,17 +105,25 @@ export class ReservationBarComponent implements OnInit {
       return;
     }
 
-    const price = this.parsePrice(this.event.price);
-
     this.reserving.set(true);
     try {
-      const ticketId = await this.ticketService.registerTicket({
-        eventId: this.event.id,
-        price: price,
-      });
+      const result = await this.ticketService.reserveTicket(this.event.id);
 
-      await this.presentToast('Ticket reservado con éxito!', 'success');
-      this.router.navigate(['/tickets', ticketId]);
+      if (!result.ok) {
+        await this.presentToast(
+          this.reserveErrorMessage(result.reason),
+          'warning'
+        );
+        return;
+      }
+
+      await this.presentToast(
+        result.reason === 'existing'
+          ? 'Ya tienes un ticket para este evento.'
+          : 'Ticket reservado con éxito!',
+        'success'
+      );
+      this.router.navigate(['/tickets', result['ticket_id']]);
     } catch (error) {
       console.error('Error al reservar ticket:', error);
       this.presentToast(

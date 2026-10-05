@@ -105,7 +105,7 @@ export class EventValidatorsPage implements OnInit {
 
     this.searching.set(true);
     try {
-      const results = await this.staffService.searchUsers(term);
+      const results = await this.staffService.searchUsers(this.eventId, term);
       // No mostrar a alguien que ya tiene acceso vigente.
       const grantedIds = new Set(this.grants().map((g) => g.profileId));
       this.candidates.set(results.filter((c) => !grantedIds.has(c.id)));

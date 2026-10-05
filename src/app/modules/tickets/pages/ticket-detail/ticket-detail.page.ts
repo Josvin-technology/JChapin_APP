@@ -1,4 +1,11 @@
-import { Component, inject, OnInit, signal } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  inject,
+  OnInit,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -13,7 +20,6 @@ import {
   calendarOutline,
   chevronBack,
   downloadOutline,
-  shareSocialOutline,
   checkmarkCircleOutline,
   closeCircleOutline,
   timeOutline,
@@ -24,6 +30,8 @@ import { TicketsService } from 'src/app/core/services/tickets-service';
 import { AppSettingsService } from 'src/app/core/services/app-settings-service';
 import { isPastCancellationDeadline } from 'src/app/core/utils/date-format';
 import { BackButtonComponent } from 'src/app/shared/components/back-button/back-button.component';
+import { TicketDownloadService } from 'src/app/core/services/ticket-download-service';
+import { toDataURL } from 'qrcode';
 
 export type TicketStatus = 'active' | 'used' | 'cancelled' | 'expired';
 
@@ -53,10 +61,15 @@ export class TicketDetailPage implements OnInit {
   private appSettings = inject(AppSettingsService);
   private alertController = inject(AlertController);
   private toastController = inject(ToastController);
+  private ticketDownload = inject(TicketDownloadService);
+
+  // Tarjeta del ticket que se convierte en imagen al descargar.
+  private ticketCard = viewChild<ElementRef<HTMLElement>>('ticketCard');
 
   ticket!: TicketModel;
   qrUrl: string = '';
   cancelling = signal(false);
+  downloading = signal(false);
   private cancellationDeadlineDays: number | null = null;
 
   private statusMap: Record<string, StatusConfig> = {
@@ -86,7 +99,6 @@ export class TicketDetailPage implements OnInit {
     addIcons({
       chevronBack,
       downloadOutline,
-      shareSocialOutline,
       calendarOutline,
       checkmarkCircleOutline,
       closeCircleOutline,
@@ -108,7 +120,14 @@ export class TicketDetailPage implements OnInit {
         return;
       }
       this.ticket = ticket;
-      this.qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${this.ticket.code}`;
+      // QR generado en el dispositivo: funciona sin internet, no envía el
+      // código a terceros y permite incluirlo en la imagen descargada.
+      if (this.ticket.code) {
+        this.qrUrl = await toDataURL(this.ticket.code, {
+          width: 600,
+          margin: 1,
+        });
+      }
 
       const settings = await this.appSettings.getSettings();
       this.cancellationDeadlineDays = settings.cancellationDeadlineDays;
@@ -168,6 +187,42 @@ export class TicketDetailPage implements OnInit {
       await this.presentToast('No se pudo cancelar el ticket', 'danger');
     } finally {
       this.cancelling.set(false);
+    }
+  }
+
+  // Guarda la tarjeta del ticket como PNG (Documentos/JChapin en Android).
+  async downloadTicket() {
+    const card = this.ticketCard()?.nativeElement;
+    if (!card || !this.ticket || this.downloading()) return;
+
+    this.downloading.set(true);
+    try {
+      // Fondo igual al de la página para que los cortes del boleto se vean igual.
+      const background =
+        getComputedStyle(document.documentElement)
+          .getPropertyValue('--ion-background-color')
+          .trim() || '#f4f5f8';
+      const saved = await this.ticketDownload.saveElementAsPng(
+        card,
+        `ticket-${this.ticket.code}.png`,
+        background
+      );
+      await this.presentToast(
+        `Ticket guardado en ${saved.location}`,
+        'success'
+      );
+    } catch (error) {
+      console.error('No se pudo descargar el ticket:', error);
+      const denied =
+        error instanceof Error && error.message === 'storage-denied';
+      await this.presentToast(
+        denied
+          ? 'Necesitamos permiso de almacenamiento para guardar el ticket.'
+          : 'No se pudo descargar el ticket.',
+        'danger'
+      );
+    } finally {
+      this.downloading.set(false);
     }
   }
 

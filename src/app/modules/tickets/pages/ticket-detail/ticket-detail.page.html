@@ -8,7 +8,7 @@
     </div>
 
     <!-- Container Ticket Físico Estilo Card -->
-    <div class="shadow-xl rounded-[32px] overflow-hidden">
+    <div #ticketCard class="shadow-xl rounded-[32px] overflow-hidden">
       <!-- Card Superior (Información) -->
       <div class="bg-emerald-900 text-white p-6 relative">
         <div class="flex justify-between items-center gap-2">
@@ -120,39 +120,34 @@
           </p>
         </div>
 
-        <!-- Acciones -->
-        <div class="flex gap-3 mt-6">
-          <button
-            [disabled]="ticket?.status === 'cancelled' || ticket?.status === 'expired'"
-            class="flex-1 h-11 rounded-xl border border-gray-200 text-gray-700 text-sm font-semibold flex items-center justify-center gap-2 hover:bg-gray-50 active:bg-gray-100 disabled:opacity-40 transition"
-          >
-            <ion-icon name="download-outline" class="text-lg"></ion-icon>
-            Descargar
-          </button>
+        <!-- Acciones (se excluyen de la imagen descargada) -->
+        <div data-export-ignore>
+          <div class="flex gap-3 mt-6">
+            <button
+              (click)="downloadTicket()"
+              [disabled]="ticket?.status === 'cancelled' || ticket?.status === 'expired' || downloading()"
+              class="flex-1 h-11 rounded-xl border border-gray-200 text-gray-700 text-sm font-semibold flex items-center justify-center gap-2 hover:bg-gray-50 active:bg-gray-100 disabled:opacity-40 transition"
+            >
+              <ion-icon name="download-outline" class="text-lg"></ion-icon>
+              {{ downloading() ? 'Descargando…' : 'Descargar' }}
+            </button>
+          </div>
 
+          @if (ticket?.status === 'active') {
           <button
-            [disabled]="ticket?.status === 'cancelled' || ticket?.status === 'expired'"
-            class="flex-1 h-11 rounded-xl border border-gray-200 text-gray-700 text-sm font-semibold flex items-center justify-center gap-2 hover:bg-gray-50 active:bg-gray-100 disabled:opacity-40 transition"
+            (click)="confirmCancelTicket()"
+            [disabled]="!canCancel || cancelling()"
+            class="w-full h-11 mt-3 !rounded-xl border border-rose-600 text-rose-600 text-sm font-semibold flex items-center justify-center gap-2 hover:bg-rose-50 active:bg-rose-100 disabled:opacity-40 transition"
           >
-            <ion-icon name="share-social-outline" class="text-lg"></ion-icon>
-            Compartir
+            <ion-icon name="close-circle-outline" class="text-lg"></ion-icon>
+            {{ cancelling() ? 'Cancelando…' : 'Cancelar ticket' }}
           </button>
+          @if (!canCancel) {
+          <p class="text-center text-[11px] text-gray-600 font-semibold mt-2">
+            Ya no se puede cancelar: falta muy poco para el evento.
+          </p>
+          } }
         </div>
-
-        @if (ticket?.status === 'active') {
-        <button
-          (click)="confirmCancelTicket()"
-          [disabled]="!canCancel || cancelling()"
-          class="w-full h-11 mt-3 !rounded-xl border border-rose-600 text-rose-600 text-sm font-semibold flex items-center justify-center gap-2 hover:bg-rose-50 active:bg-rose-100 disabled:opacity-40 transition"
-        >
-          <ion-icon name="close-circle-outline" class="text-lg"></ion-icon>
-          {{ cancelling() ? 'Cancelando…' : 'Cancelar ticket' }}
-        </button>
-        @if (!canCancel) {
-        <p class="text-center text-[11px] text-gray-600 font-semibold mt-2">
-          Ya no se puede cancelar: falta muy poco para el evento.
-        </p>
-        } }
       </div>
     </div>
 
