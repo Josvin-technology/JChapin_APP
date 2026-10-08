@@ -3,9 +3,6 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   IonContent,
-  IonHeader,
-  IonTitle,
-  IonToolbar,
   IonIcon,
   AlertController,
   ToastController,
@@ -41,16 +38,7 @@ const STATUS_META: Record<ApprovalStatus, { label: string; classes: string }> =
   templateUrl: './approvals.page.html',
   styleUrls: ['./approvals.page.scss'],
   standalone: true,
-  imports: [
-    IonContent,
-    IonHeader,
-    IonTitle,
-    IonToolbar,
-    CommonModule,
-    FormsModule,
-    IonIcon,
-    IonSpinner,
-  ],
+  imports: [IonContent, CommonModule, FormsModule, IonIcon, IonSpinner],
 })
 export class ApprovalsPage implements OnInit {
   private approvalService = inject(ApprovalService);

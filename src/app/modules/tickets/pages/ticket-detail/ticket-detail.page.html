@@ -19,7 +19,8 @@
           </span>
 
           <!-- Badge dinámico -->
-          @if (ticket?.status) { @let config = getStatusConfig(ticket.status);
+          @if (ticket?.status; as status) { @let config =
+          getStatusConfig(status);
           <div
             [class]="'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border backdrop-blur-md ' + config.badgeClass"
           >

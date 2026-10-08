@@ -35,8 +35,9 @@
                 "output": "assets"
               }
             ],
-            "styles": ["src/global.scss", "src/theme/variables.scss"],
+            "styles": ["src/global.css", "src/theme/variables.scss"],
             "scripts": [],
+            "allowedCommonJsDependencies": ["qrcode"],
             "browser": "src/main.ts"
           },
           "configurations": {
@@ -109,7 +110,7 @@
                 "output": "assets"
               }
             ],
-            "styles": ["src/global.scss", "src/theme/variables.scss"],
+            "styles": ["src/global.css", "src/theme/variables.scss"],
             "scripts": []
           },
           "configurations": {

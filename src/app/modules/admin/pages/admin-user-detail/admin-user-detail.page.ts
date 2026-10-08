@@ -7,8 +7,6 @@ import {
   IonSpinner,
   IonToggle,
   ToastController,
-  IonHeader,
-  IonToolbar,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { chevronBack, personCircleOutline } from 'ionicons/icons';
@@ -26,8 +24,6 @@ import { BackButtonComponent } from 'src/app/shared/components/back-button/back-
   styleUrls: ['./admin-user-detail.page.scss'],
   standalone: true,
   imports: [
-    IonToolbar,
-    IonHeader,
     CommonModule,
     IonContent,
     IonIcon,

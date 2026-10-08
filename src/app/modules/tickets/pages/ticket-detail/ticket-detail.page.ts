@@ -66,7 +66,8 @@ export class TicketDetailPage implements OnInit {
   // Tarjeta del ticket que se convierte en imagen al descargar.
   private ticketCard = viewChild<ElementRef<HTMLElement>>('ticketCard');
 
-  ticket!: TicketModel;
+  // Null mientras se carga desde el servicio.
+  ticket: TicketModel | null = null;
   qrUrl: string = '';
   cancelling = signal(false);
   downloading = signal(false);

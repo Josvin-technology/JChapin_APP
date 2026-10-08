@@ -53,8 +53,8 @@
         <!-- Cabecera del evento -->
         <div class="flex gap-3 p-3">
           <img
-            [src]="req.event?.image"
-            [alt]="req.event?.title"
+            [src]="req.event.image"
+            [alt]="req.event.title"
             class="w-20 h-20 rounded-xl object-cover flex-shrink-0"
           />
           <div class="flex-1 min-w-0">
@@ -62,7 +62,7 @@
               <p
                 class="text-sm font-bold text-neutral leading-tight line-clamp-2"
               >
-                {{ req.event?.title }}
+                {{ req.event.title }}
               </p>
               <span
                 class="px-2 py-1 rounded-full text-[10px] font-bold whitespace-nowrap"
@@ -72,45 +72,38 @@
               </span>
             </div>
             <p class="text-[11px] text-neutral/50 mt-1 line-clamp-1">
-              {{ req.event?.month }} {{ req.event?.day }} · {{ req.event?.time
-              }}
+              {{ req.event.month }} {{ req.event.day }} · {{ req.event.time }}
             </p>
             <p class="text-[11px] text-neutral/50 mt-0.5 line-clamp-1">
               <ion-icon name="location-outline" class="align-middle"></ion-icon>
-              {{ req.event?.location }}
+              {{ req.event.location }}
             </p>
             <p class="text-[11px] text-neutral/50 mt-0.5 line-clamp-1">
-              Organiza: {{ req.event?.organizer?.name }}
+              Organiza: {{ req.event.organizer?.name }}
             </p>
           </div>
         </div>
 
         <!-- Resumen de documentos -->
-        <button
-          type="button"
-          (click)="toggleDocs(req.id)"
-          class="w-full flex items-center justify-between gap-2 px-3 py-2 border-t border-surface-dim/40 text-left"
-        >
-          <span
-            class="inline-flex items-center gap-2 text-xs font-semibold text-neutral"
-          >
-            <ion-icon
-              name="document-text-outline"
-              class="text-primary"
-            ></ion-icon>
-            @if (req.documents.length === 0) { Sin documentos requeridos } @else if 
-            (req.missingDocuments > 0) { Faltan {{ req.missingDocuments }} de
-            {{ req.documents.length }} documentos } @else { {{
-            req.documents.length }} documentos completos }
-          </span>
-          @if (req.documents.length > 0) {
-          <ion-icon
-            name="chevron-down-outline"
-            class="text-neutral/40 transition-transform"
-            [class.rotate-180]="expandedId() === req.id"
-          ></ion-icon>
-          }
-        </button>
+        
+        <button type="button" (click)="toggleDocs(req.id)"
+             class="w-full flex items-center justify-between gap-2 px-3 py-2 border-t border-surface-dim/40 text-left">
+             <span class="inline-flex items-center gap-2 text-xs font-semibold text-neutral">
+               <ion-icon name="document-text-outline" class="text-primary"></ion-icon>
+               @if (req.documents.length === 0) {
+                 Sin documentos requeridos
+               } @else if (req.missingDocuments > 0) {
+                 Faltan {{ req.missingDocuments }} de {{ req.documents.length }} documentos
+               } @else {
+                 {{ req.documents.length }} documentos completos
+               }
+             </span>
+             @if (req.documents.length > 0) {
+               <ion-icon name="chevron-down-outline"
+                 class="text-neutral/40 transition-transform"
+                 [class.rotate-180]="expandedId() === req.id"></ion-icon>
+             }
+           </button>
 
         <!-- Lista de documentos -->
         @if (expandedId() === req.id && req.documents.length > 0) {

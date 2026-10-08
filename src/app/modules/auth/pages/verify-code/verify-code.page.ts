@@ -5,7 +5,8 @@ import {
   IonContent,
   IonSpinner,
   IonIcon,
-  ToastController, IonHeader, IonToolbar, IonTitle } from '@ionic/angular/standalone';
+  ToastController,
+} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { arrowForward, mailOutline } from 'ionicons/icons';
 import { AuthService } from 'src/app/core/services/auth-service';
@@ -16,7 +17,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
   templateUrl: './verify-code.page.html',
   styleUrls: ['./verify-code.page.scss'],
   standalone: true,
-  imports: [IonTitle, IonToolbar, IonHeader, 
+  imports: [
     IonIcon,
     IonContent,
     CommonModule,

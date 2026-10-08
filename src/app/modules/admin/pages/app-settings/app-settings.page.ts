@@ -6,9 +6,6 @@ import {
   IonIcon,
   IonSpinner,
   ToastController,
-  IonHeader,
-  IonToolbar,
-  IonTitle,
 } from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import { chevronBack, saveOutline } from 'ionicons/icons';
@@ -21,9 +18,6 @@ import { BackButtonComponent } from 'src/app/shared/components/back-button/back-
   styleUrls: ['./app-settings.page.scss'],
   standalone: true,
   imports: [
-    IonTitle,
-    IonToolbar,
-    IonHeader,
     CommonModule,
     ReactiveFormsModule,
     IonContent,
