@@ -86,16 +86,40 @@ export class DeviceFileService {
       throw new Error('storage-denied');
     }
 
-    const path = `${ANDROID_FOLDER}/${fileName}`;
-    const { uri } = await Filesystem.writeFile({
-      path,
-      data,
-      directory: Directory.Documents,
-      encoding,
-      recursive: true,
-    });
+    const write = async (name: string): Promise<SavedFile> => {
+      const path = `${ANDROID_FOLDER}/${name}`;
+      const { uri } = await Filesystem.writeFile({
+        path,
+        data,
+        directory: Directory.Documents,
+        encoding,
+        recursive: true,
+      });
+      return { location: `Documentos/${path}`, uri, mimeType };
+    };
 
-    return { location: `Documentos/${path}`, uri, mimeType };
+    try {
+      return await write(fileName);
+    } catch (error) {
+      // En Android 11+ la app no puede sobrescribir un archivo de Documentos
+      // que creó otra instalación (ej. la versión de Play antes de instalar la
+      // APK de la landing, o tras desinstalar/reinstalar): falla con EACCES.
+      // Se reintenta una vez con un nombre único.
+      console.warn(
+        `No se pudo escribir ${fileName}, se reintenta con otro nombre:`,
+        error
+      );
+      return write(this.withTimestamp(fileName));
+    }
+  }
+
+  // reportes_2026-10-31.csv -> reportes_2026-10-31_153012.csv
+  private withTimestamp(fileName: string): string {
+    const stamp = new Date().toTimeString().slice(0, 8).replace(/:/g, '');
+    const dot = fileName.lastIndexOf('.');
+    return dot > 0
+      ? `${fileName.slice(0, dot)}_${stamp}${fileName.slice(dot)}`
+      : `${fileName}_${stamp}`;
   }
 
   private downloadInBrowser(href: string, fileName: string): void {
