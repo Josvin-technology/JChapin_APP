@@ -1,6 +1,11 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { IonContent, IonIcon, IonSpinner } from '@ionic/angular/standalone';
+import {
+  IonContent,
+  IonIcon,
+  IonSpinner,
+  ToastController,
+} from '@ionic/angular/standalone';
 import { addIcons } from 'ionicons';
 import {
   alertCircleOutline,
@@ -68,8 +73,10 @@ const APPROVAL_STATUS_LABELS: Record<string, string> = {
 export class ReportsDashboardPage implements OnInit {
   private reportsService = inject(ReportsService);
   private exportService = inject(ReportsExportService);
+  private toastController = inject(ToastController);
 
   loading = signal(true);
+  exporting = signal(false);
   error = signal<string | null>(null);
   dashboard = signal<ReportsDashboard | null>(null);
 
@@ -139,17 +146,46 @@ export class ReportsDashboardPage implements OnInit {
     this.load();
   }
 
-  exportCsv() {
+  async exportCsv() {
     const dashboard = this.dashboard();
-    if (!dashboard) return;
+    if (!dashboard || this.exporting()) return;
 
-    this.exportService.export(dashboard, this.range, {
-      eventStatus: (s) => this.eventStatusLabel(s),
-      ticketStatus: (s) => this.ticketStatusLabel(s),
-      ticketType: (t) => this.ticketTypeLabel(t),
-      registrationStatus: (s) => this.registrationStatusLabel(s),
-      approvalStatus: (s) => this.approvalStatusLabel(s),
+    this.exporting.set(true);
+    try {
+      const saved = await this.exportService.export(dashboard, this.range, {
+        eventStatus: (s) => this.eventStatusLabel(s),
+        ticketStatus: (s) => this.ticketStatusLabel(s),
+        ticketType: (t) => this.ticketTypeLabel(t),
+        registrationStatus: (s) => this.registrationStatusLabel(s),
+        approvalStatus: (s) => this.approvalStatusLabel(s),
+      });
+      await this.presentToast(
+        `Reporte guardado en ${saved.location}`,
+        'success'
+      );
+    } catch (error) {
+      console.error('No se pudo exportar el reporte:', error);
+      const denied =
+        error instanceof Error && error.message === 'storage-denied';
+      await this.presentToast(
+        denied
+          ? 'Necesitamos permiso de almacenamiento para guardar el reporte.'
+          : 'No se pudo exportar el reporte.',
+        'danger'
+      );
+    } finally {
+      this.exporting.set(false);
+    }
+  }
+
+  private async presentToast(message: string, color: 'success' | 'danger') {
+    const toast = await this.toastController.create({
+      message,
+      duration: 3000,
+      color,
+      position: 'top',
     });
+    await toast.present();
   }
 
   eventStatusLabel(status: string): string {

@@ -99,11 +99,15 @@
     <!-- Botón Exportar CSV -->
     <button
       (click)="exportCsv()"
+      [disabled]="exporting()"
       type="button"
-      class="w-full h-12 flex items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary/5 text-xs font-bold text-primary shadow-xs transition-all active:scale-[0.98]"
+      class="w-full h-12 flex items-center justify-center gap-2 rounded-xl border border-primary/20 bg-primary/5 text-xs font-bold text-primary shadow-xs transition-all active:scale-[0.98] disabled:opacity-60"
     >
+      @if (exporting()) {
+      <ion-spinner name="crescent" class="h-4 w-4"></ion-spinner>
+      Exportando... } @else {
       <ion-icon name="download-outline" class="text-base"></ion-icon>
-      Exportar Reporte a CSV
+      Exportar Reporte a CSV }
     </button>
 
     <!-- Tarjetas de Resumen (KPIs) -->

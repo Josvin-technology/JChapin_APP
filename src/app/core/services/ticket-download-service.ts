@@ -1,29 +1,22 @@
-import { Injectable } from '@angular/core';
-import { Capacitor } from '@capacitor/core';
-import { Directory, Filesystem } from '@capacitor/filesystem';
+import { Injectable, inject } from '@angular/core';
 import { toPng } from 'html-to-image';
-
-// Carpeta dentro de Documentos donde quedan los tickets descargados (Android).
-const ANDROID_FOLDER = 'JChapin';
+import { DeviceFileService, SavedFile } from './device-file-service';
 
 // Atributo para excluir elementos de la imagen (botones, avisos).
 export const EXPORT_IGNORE_ATTR = 'data-export-ignore';
 
-export interface SavedImage {
-  // Ruta legible para mostrarle al usuario dónde quedó el archivo.
-  location: string;
-}
+export type SavedImage = SavedFile;
 
 /**
- * Convierte un elemento del DOM (la tarjeta del ticket) en PNG y lo guarda:
- * - Android: en Documentos/JChapin con @capacitor/filesystem (el WebView no
- *   soporta descargas con <a download>).
- * - Web: descarga normal del navegador.
+ * Convierte un elemento del DOM (la tarjeta del ticket) en PNG y lo guarda
+ * con DeviceFileService (Documentos/JChapin en Android, descarga en web).
  */
 @Injectable({
   providedIn: 'root',
 })
 export class TicketDownloadService {
+  private deviceFile = inject(DeviceFileService);
+
   async saveElementAsPng(
     element: HTMLElement,
     fileName: string,
@@ -48,42 +41,6 @@ export class TicketDownloadService {
       ignored.forEach((el, i) => (el.style.display = previousDisplay[i]));
     }
 
-    if (Capacitor.isNativePlatform()) {
-      return this.saveOnDevice(dataUrl, fileName);
-    }
-
-    this.downloadInBrowser(dataUrl, fileName);
-    return { location: 'Descargas' };
-  }
-
-  private async saveOnDevice(
-    dataUrl: string,
-    fileName: string
-  ): Promise<SavedImage> {
-    // En Android 10 o menor pide el permiso de almacenamiento; en 11+ ya
-    // viene concedido para los archivos que crea la propia app.
-    const perm = await Filesystem.requestPermissions();
-    if (perm.publicStorage !== 'granted') {
-      throw new Error('storage-denied');
-    }
-
-    const path = `${ANDROID_FOLDER}/${fileName}`;
-    await Filesystem.writeFile({
-      path,
-      data: dataUrl.split(',')[1], // base64 sin el prefijo data:image/png
-      directory: Directory.Documents,
-      recursive: true,
-    });
-
-    return { location: `Documentos/${path}` };
-  }
-
-  private downloadInBrowser(dataUrl: string, fileName: string): void {
-    const link = document.createElement('a');
-    link.href = dataUrl;
-    link.download = fileName;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
+    return this.deviceFile.saveDataUrl(dataUrl, fileName);
   }
 }
