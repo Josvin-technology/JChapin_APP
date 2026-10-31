@@ -31,6 +31,10 @@ import { AppSettingsService } from 'src/app/core/services/app-settings-service';
 import { isPastCancellationDeadline } from 'src/app/core/utils/date-format';
 import { BackButtonComponent } from 'src/app/shared/components/back-button/back-button.component';
 import { TicketDownloadService } from 'src/app/core/services/ticket-download-service';
+import {
+  DeviceFileService,
+  SavedFile,
+} from 'src/app/core/services/device-file-service';
 import { toDataURL } from 'qrcode';
 
 export type TicketStatus = 'active' | 'used' | 'cancelled' | 'expired';
@@ -62,6 +66,7 @@ export class TicketDetailPage implements OnInit {
   private alertController = inject(AlertController);
   private toastController = inject(ToastController);
   private ticketDownload = inject(TicketDownloadService);
+  private deviceFile = inject(DeviceFileService);
 
   // Tarjeta del ticket que se convierte en imagen al descargar.
   private ticketCard = viewChild<ElementRef<HTMLElement>>('ticketCard');
@@ -210,7 +215,8 @@ export class TicketDetailPage implements OnInit {
       );
       await this.presentToast(
         `Ticket guardado en ${saved.location}`,
-        'success'
+        'success',
+        saved
       );
     } catch (error) {
       console.error('No se pudo descargar el ticket:', error);
@@ -239,14 +245,39 @@ export class TicketDetailPage implements OnInit {
     return messages[reason] ?? 'No se pudo completar la acción.';
   }
 
-  private async presentToast(message: string, color: 'success' | 'danger') {
+  // Si se pasa el archivo guardado (solo en el dispositivo), el toast muestra
+  // un botón "Abrir" y se queda más tiempo para que alcancen a tocarlo.
+  private async presentToast(
+    message: string,
+    color: 'success' | 'danger',
+    file?: SavedFile
+  ) {
+    const canOpen = !!file?.uri;
     const toast = await this.toastController.create({
       message,
-      duration: 3000,
+      duration: canOpen ? 6000 : 3000,
       color,
       position: 'top',
+      buttons: canOpen
+        ? [{ text: 'Abrir', handler: () => void this.openFile(file!) }]
+        : undefined,
     });
     await toast.present();
+  }
+
+  private async openFile(file: SavedFile) {
+    try {
+      await this.deviceFile.open(file);
+    } catch (error) {
+      console.error('No se pudo abrir el ticket:', error);
+      const noApp = error instanceof Error && error.message === 'no-app';
+      await this.presentToast(
+        noApp
+          ? `No hay una app para abrir imágenes. Búscalo en ${file.location}`
+          : 'No se pudo abrir el ticket.',
+        'danger'
+      );
+    }
   }
 
   getStatusConfig(status?: string): StatusConfig {

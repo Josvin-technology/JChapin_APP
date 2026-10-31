@@ -21,6 +21,10 @@ import {
 import { ReportsService } from 'src/app/core/services/reports-service';
 import { ReportsExportService } from 'src/app/core/services/reports-export-service';
 import {
+  DeviceFileService,
+  SavedFile,
+} from 'src/app/core/services/device-file-service';
+import {
   ReportDateRange,
   ReportsDashboard,
 } from 'src/app/core/models/report.model';
@@ -74,6 +78,7 @@ export class ReportsDashboardPage implements OnInit {
   private reportsService = inject(ReportsService);
   private exportService = inject(ReportsExportService);
   private toastController = inject(ToastController);
+  private deviceFile = inject(DeviceFileService);
 
   loading = signal(true);
   exporting = signal(false);
@@ -161,7 +166,8 @@ export class ReportsDashboardPage implements OnInit {
       });
       await this.presentToast(
         `Reporte guardado en ${saved.location}`,
-        'success'
+        'success',
+        saved
       );
     } catch (error) {
       console.error('No se pudo exportar el reporte:', error);
@@ -178,14 +184,39 @@ export class ReportsDashboardPage implements OnInit {
     }
   }
 
-  private async presentToast(message: string, color: 'success' | 'danger') {
+  // Si se pasa el archivo guardado (solo en el dispositivo), el toast muestra
+  // un botón "Abrir" y se queda más tiempo para que alcancen a tocarlo.
+  private async presentToast(
+    message: string,
+    color: 'success' | 'danger',
+    file?: SavedFile
+  ) {
+    const canOpen = !!file?.uri;
     const toast = await this.toastController.create({
       message,
-      duration: 3000,
+      duration: canOpen ? 6000 : 3000,
       color,
       position: 'top',
+      buttons: canOpen
+        ? [{ text: 'Abrir', handler: () => void this.openFile(file!) }]
+        : undefined,
     });
     await toast.present();
+  }
+
+  private async openFile(file: SavedFile) {
+    try {
+      await this.deviceFile.open(file);
+    } catch (error) {
+      console.error('No se pudo abrir el reporte:', error);
+      const noApp = error instanceof Error && error.message === 'no-app';
+      await this.presentToast(
+        noApp
+          ? `No hay una app para abrir CSV. Búscalo en ${file.location}`
+          : 'No se pudo abrir el reporte.',
+        'danger'
+      );
+    }
   }
 
   eventStatusLabel(status: string): string {
